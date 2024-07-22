@@ -73,12 +73,17 @@ const char MAIN_page[] PROGMEM = R"=====(
             padding: 0;
         }
 
-        #temperature1History {
-            padding-top: 0.5em;
-            font-size: larger;
+        .card-historical div {
+            padding-top: 0.5rem;
+            font-size: medium;
             display: flex;
             flex-direction: row;
             justify-content: space-evenly;
+            align-items: center;
+            flex-grow: 1;
+        }
+        .card-historical div div {
+            padding: 0 0.5rem 0 0.5rem;
         }
 
         .button-section {
@@ -138,6 +143,10 @@ const char MAIN_page[] PROGMEM = R"=====(
                     <sup class="units">%</sup>
                 </p>
             </div>
+            <div class="card-historical">
+                <h2 class="history-head">Humidity 1 History</h2>
+                <div id="humidity1History"></div>
+            </div>
             <!--BME Pressure-->
             <div class="card">
                 <h2>Pressure 1: </h2>
@@ -145,6 +154,10 @@ const char MAIN_page[] PROGMEM = R"=====(
                     <span id="BMEPressureValue">0</span>
                     <sup class="units">mb</sup>
                 </p>
+            </div>
+            <div class="card-historical">
+                <h2 class="history-head">Pressure 1 History</h2>
+                <div id="pressure1History"></div>
             </div>
             <!--BMP Temperature-->
             <div class="card">
@@ -154,6 +167,10 @@ const char MAIN_page[] PROGMEM = R"=====(
                     <sup class="units">&deg;C</sup>
                 </p>
             </div>
+            <div class="card-historical">
+                <h2 class="history-head">Temperature 2 History</h2>
+                <div id="temperature2History"></div>
+            </div>
             <!--DHT Humidity-->
             <div class="card">
                 <h2>Humidity 2: </h2>
@@ -161,6 +178,11 @@ const char MAIN_page[] PROGMEM = R"=====(
                     <span id="DHTHumidityValue">0</span>
                     <sup class="units">%</sup>
                 </p>
+            </div>
+
+            <div class="card-historical">
+                <h2 class="history-head">Humidity 2 History</h2>
+                <div id="humidity2History"></div>
             </div>
             <!--BMP Pressure-->
             <div class="card">
@@ -170,6 +192,11 @@ const char MAIN_page[] PROGMEM = R"=====(
                     <sup class="units">mb</sup>
                 </p>
             </div>
+
+            <div class="card-historical">
+                <h2 class="history-head">Pressure 2 History</h2>
+                <div id="pressure2History"></div>
+            </div>
             <!--AS5600 Wind Direction-->
             <div class="card">
                 <h2>Wind Direction: </h2>
@@ -177,6 +204,10 @@ const char MAIN_page[] PROGMEM = R"=====(
                     <span id="WindDirectionValue">0</span>
                     <sup class="units">&deg;</sup>
                 </p>
+            </div>
+            <div class="card-historical">
+                <h2 class="history-head">Wind Direction History</h2>
+                <div id="windDirectionHistory"></div>
             </div>
             <!--BH1750 Light-->
             <div class="card">
@@ -186,6 +217,10 @@ const char MAIN_page[] PROGMEM = R"=====(
                     <sup class="units">lux</sup>
                 </p>
             </div>
+            <div class="card-historical">
+                <h2 class="history-head">Light Intensity History</h2>
+                <div id="lightHistory"></div>
+            </div>
             <!--UV-->
             <div class="card">
                 <h2>UV Intensity: </h2>
@@ -193,6 +228,10 @@ const char MAIN_page[] PROGMEM = R"=====(
                     <span id="UVValue">0</span>
                     <sup class="units">mW/cm2</sup>
                 </p>
+            </div>
+            <div class="card-historical">
+                <h2 class="history-head">UV Intensity History</h2>
+                <div id="uvHistory"></div>
             </div>
             <!--Precipitation-->
             <div class="card">
@@ -202,6 +241,10 @@ const char MAIN_page[] PROGMEM = R"=====(
                     <sup class="units">mm</sup>
                 </p>
             </div>
+            <div class="card-historical">
+                <h2 class="history-head">Precipitation History</h2>
+                <div id="rainHistory"></div>
+            </div>
             <!--Wind Speed-->
             <div class="card">
                 <h2>Wind Speed: </h2>
@@ -209,6 +252,10 @@ const char MAIN_page[] PROGMEM = R"=====(
                     <span id="WindSpeedValue">0</span>
                     <sup class="units">kph</sup>
                 </p>
+            </div>
+            <div class="card-historical">
+                <h2 class="history-head">Wind Speed History</h2>
+                <div id="windSpeedHistory"></div>
             </div>
         </section>
         <section class="button-section">
@@ -245,37 +292,76 @@ const char MAIN_page[] PROGMEM = R"=====(
             Time_Date();
         }, 1000);
 
-        const temperature1Array = ["0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00"];
-        const list = document.getElementById('temperature1History');
-        temperature1Array.forEach(item => {
-            const listItem = document.createElement('div');
-            listItem.textContent = item;
-            list.appendChild(listItem);
-        });
+        let temperature1Array = ["0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00"];
+        let humidity1Array = ["0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00"];
+        let pressure1Array = ["0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00"];
+        let temperature2Array = ["0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00"];
+        let humidity2Array = ["0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00"];
+        let pressure2Array = ["0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00"];
+        let windDirectionArray = ["0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00"];
+        let lightArray = ["0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00"];
+        let uvArray = ["0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00"];
+        let rainArray = ["0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00"];
+        let windSpeedArray = ["0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00"];
+
+
 
         // BME Temperature
         function getBMETemperatureData() {
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
-                    const newValue = this.responseText;
+                    let newValue = this.responseText;
+                    console.log(newValue);
+                    console.log(temperature1Array);
+
                     temperature1Array.unshift(newValue); // insert new value at index 0
                     temperature1Array.pop(); // remove last item
 
-                    document.getElementById("BMETemperatureValue").innerHTML =
-                        this.responseText;
+                    let list = document.getElementById('temperature1History');
+                    while (list.firstChild) {
+                        list.removeChild(list.firstChild);
+                    }
+
+                    temperature1Array.forEach(item => {
+                        let listItem = document.createElement('div');
+                        listItem.textContent = item;
+                        list.appendChild(listItem);
+                    });
+
+                    console.log(temperature1Array);
+                    document.getElementById("BMETemperatureValue").innerHTML = newValue;
                 }
             };
             xhttp.open("GET", "readBMETemperature", true);
             xhttp.send();
         }
+
         // BME Humidity
         function getBMEHumidityData() {
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
-                    document.getElementById("BMEHumidityValue").innerHTML =
-                        this.responseText;
+                    let newValue = this.responseText;
+                    console.log(newValue);
+                    console.log(humidity1Array);
+
+                    humidity1Array.unshift(newValue); // insert new value at index 0
+                    humidity1Array.pop(); // remove last item
+
+                    let list = document.getElementById('humidity1History');
+                    while (list.firstChild) {
+                        list.removeChild(list.firstChild);
+                    }
+
+                    humidity1Array.forEach(item => {
+                        let listItem = document.createElement('div');
+                        listItem.textContent = item;
+                        list.appendChild(listItem);
+                    });
+
+                    console.log(humidity1Array);
+                    document.getElementById("BMEHumidityValue").innerHTML = newValue;
                 }
             };
             xhttp.open("GET", "readBMEHumidity", true);
@@ -287,8 +373,23 @@ const char MAIN_page[] PROGMEM = R"=====(
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
-                    document.getElementById("BMEPressureValue").innerHTML =
-                        this.responseText;
+                    let newValue = this.responseText;
+
+                    pressure1Array.unshift(newValue); // insert new value at index 0
+                    pressure1Array.pop(); // remove last item
+
+                    let list = document.getElementById('pressure1History');
+                    while (list.firstChild) {
+                        list.removeChild(list.firstChild);
+                    }
+
+                    pressure1Array.forEach(item => {
+                        let listItem = document.createElement('div');
+                        listItem.textContent = item;
+                        list.appendChild(listItem);
+                    });
+
+                    document.getElementById("BMEPressureValue").innerHTML = newValue;
                 }
             };
             xhttp.open("GET", "readBMEPressure", true);
@@ -300,8 +401,22 @@ const char MAIN_page[] PROGMEM = R"=====(
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
-                    document.getElementById("BMPTemperatureValue").innerHTML =
-                        this.responseText;
+                    let newValue = this.responseText;
+
+                    temperature2Array.unshift(newValue); // insert new value at index 0
+                    temperature2Array.pop(); // remove last item
+
+                    let list = document.getElementById('temperature2History');
+                    while (list.firstChild) {
+                        list.removeChild(list.firstChild);
+                    }
+
+                    temperature2Array.forEach(item => {
+                        let listItem = document.createElement('div');
+                        listItem.textContent = item;
+                        list.appendChild(listItem);
+                    });
+                    document.getElementById("BMPTemperatureValue").innerHTML = newValue;
                 }
             };
             xhttp.open("GET", "readBMPTemperature", true);
@@ -313,8 +428,23 @@ const char MAIN_page[] PROGMEM = R"=====(
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
-                    document.getElementById("DHTHumidityValue").innerHTML =
-                        this.responseText;
+                    let newValue = this.responseText;
+
+                    humidity2Array.unshift(newValue); // insert new value at index 0
+                    humidity2Array.pop(); // remove last item
+
+                    let list = document.getElementById('humidity2History');
+                    while (list.firstChild) {
+                        list.removeChild(list.firstChild);
+                    }
+
+                    humidity2Array.forEach(item => {
+                        let listItem = document.createElement('div');
+                        listItem.textContent = item;
+                        list.appendChild(listItem);
+                    });
+
+                    document.getElementById("DHTHumidityValue").innerHTML = newValue;
                 }
             };
             xhttp.open("GET", "readDHTHumidity", true);
@@ -326,8 +456,22 @@ const char MAIN_page[] PROGMEM = R"=====(
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
-                    document.getElementById("BMPPressureValue").innerHTML =
-                        this.responseText;
+                    let newValue = this.responseText;
+
+                    pressure2Array.unshift(newValue); // insert new value at index 0
+                    pressure2Array.pop(); // remove last item
+
+                    let list = document.getElementById('pressure2History');
+                    while (list.firstChild) {
+                        list.removeChild(list.firstChild);
+                    }
+
+                    pressure2Array.forEach(item => {
+                        let listItem = document.createElement('div');
+                        listItem.textContent = item;
+                        list.appendChild(listItem);
+                    });
+                    document.getElementById("BMPPressureValue").innerHTML = newValue;
                 }
             };
             xhttp.open("GET", "readBMPPressure", true);
@@ -339,8 +483,23 @@ const char MAIN_page[] PROGMEM = R"=====(
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
-                    document.getElementById("WindDirectionValue").innerHTML =
-                        this.responseText;
+                    let newValue = this.responseText;
+
+                    windDirectionArray.unshift(newValue); // insert new value at index 0
+                    windDirectionArray.pop(); // remove last item
+
+                    let list = document.getElementById('windDirectionHistory');
+                    while (list.firstChild) {
+                        list.removeChild(list.firstChild);
+                    }
+
+                    windDirectionArray.forEach(item => {
+                        let listItem = document.createElement('div');
+                        listItem.textContent = item;
+                        list.appendChild(listItem);
+                    });
+
+                    document.getElementById("WindDirectionValue").innerHTML = newValue;
                 }
             };
             xhttp.open("GET", "readWindDirection", true);
@@ -352,8 +511,23 @@ const char MAIN_page[] PROGMEM = R"=====(
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
-                    document.getElementById("LightValue").innerHTML =
-                        this.responseText;
+                    let newValue = this.responseText;
+
+                    lightArray.unshift(newValue); // insert new value at index 0
+                    lightArray.pop(); // remove last item
+
+                    let list = document.getElementById('lightHistory');
+                    while (list.firstChild) {
+                        list.removeChild(list.firstChild);
+                    }
+
+                    lightArray.forEach(item => {
+                        let listItem = document.createElement('div');
+                        listItem.textContent = item;
+                        list.appendChild(listItem);
+                    });
+
+                    document.getElementById("LightValue").innerHTML = newValue;
                 }
             };
             xhttp.open("GET", "readLight", true);
@@ -365,8 +539,22 @@ const char MAIN_page[] PROGMEM = R"=====(
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
-                    document.getElementById("UVValue").innerHTML =
-                        this.responseText;
+                    let newValue = this.responseText;
+
+                    uvArray.unshift(newValue); // insert new value at index 0
+                    uvArray.pop(); // remove last item
+
+                    let list = document.getElementById('uvHistory');
+                    while (list.firstChild) {
+                        list.removeChild(list.firstChild);
+                    }
+
+                    uvArray.forEach(item => {
+                        let listItem = document.createElement('div');
+                        listItem.textContent = item;
+                        list.appendChild(listItem);
+                    });
+                    document.getElementById("UVValue").innerHTML = newValue;
                 }
             };
             xhttp.open("GET", "readUV", true);
@@ -378,8 +566,22 @@ const char MAIN_page[] PROGMEM = R"=====(
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
-                    document.getElementById("PrecipitationValue").innerHTML =
-                        this.responseText;
+                    let newValue = this.responseText;
+
+                    rainArray.unshift(newValue); // insert new value at index 0
+                    rainArray.pop(); // remove last item
+
+                    let list = document.getElementById('rainHistory');
+                    while (list.firstChild) {
+                        list.removeChild(list.firstChild);
+                    }
+
+                    rainArray.forEach(item => {
+                        let listItem = document.createElement('div');
+                        listItem.textContent = item;
+                        list.appendChild(listItem);
+                    });
+                    document.getElementById("PrecipitationValue").innerHTML = newValue;
                 }
             };
             xhttp.open("GET", "readPrecipitation", true);
@@ -391,8 +593,23 @@ const char MAIN_page[] PROGMEM = R"=====(
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
-                    document.getElementById("WindSpeedValue").innerHTML =
-                        this.responseText;
+
+                    let newValue = this.responseText;
+
+                    windSpeedArray.unshift(newValue); // insert new value at index 0
+                    windSpeedArray.pop(); // remove last item
+
+                    let list = document.getElementById('windSpeedHistory');
+                    while (list.firstChild) {
+                        list.removeChild(list.firstChild);
+                    }
+
+                    windSpeedArray.forEach(item => {
+                        let listItem = document.createElement('div');
+                        listItem.textContent = item;
+                        list.appendChild(listItem);
+                    });
+                    document.getElementById("WindSpeedValue").innerHTML = newValue;
                 }
             };
             xhttp.open("GET", "readWindSpeed", true);
