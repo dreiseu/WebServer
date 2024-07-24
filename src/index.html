@@ -175,14 +175,6 @@
                     <sup class="units">lux</sup>
                 </p>
             </div>
-            <!--UV-->
-            <div class="card">
-                <h2>UV Intensity: </h2>
-                <p>
-                    <span id="UVValue">0</span>
-                    <sup class="units">mW/cm2</sup>
-                </p>
-            </div>
             <!--Precipitation-->
             <div class="card">
                 <h2>Precipitation: </h2>
@@ -337,19 +329,6 @@
             xhttp.send();
         }
 
-        // UV
-        function getUVData() {
-            var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function () {
-                if (this.readyState == 4 && this.status == 200) {
-                    document.getElementById("UVValue").innerHTML =
-                        this.responseText;
-                }
-            };
-            xhttp.open("GET", "readUV", true);
-            xhttp.send();
-        }
-
         // Precipitation
         function getPrecipitationData() {
             var xhttp = new XMLHttpRequest();
@@ -415,7 +394,6 @@
             getDHTHumidityData();
             getWindDirectionData();
             getLightData();
-            getUVData();
             getPrecipitationData();
             getWindSpeedData();
         }
