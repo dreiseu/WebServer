@@ -281,12 +281,14 @@ void handleWindDirection()
     correctedAngle = correctedAngle + 360; // correction for negative numbers (i.e. -15 becomes +345)
   }
 
-  correctedAngle = correctedAngle + 120;
+  correctedAngle = correctedAngle + 170;
 
   if (correctedAngle > 360) // if the calculated angle is negative, we need to "normalize" it
   {
     correctedAngle = correctedAngle - 360; // correction for negative numbers (i.e. -15 becomes +345)
   }
+
+  correctedAngle = 360 - correctedAngle;
 
   String WindDirection_Value = String(correctedAngle);
   server.send(200, "text/plain", WindDirection_Value);
