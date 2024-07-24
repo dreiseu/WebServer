@@ -75,7 +75,7 @@ RTC_DATA_ATTR int prevRainCount;
 
 // Wind Speed
 float windspeed;
-int REV, radius = 51, period = TIME_TO_SLEEP; // Changed radius from 100 to 51
+int REV, radius = 51; // Changed radius from 100 to 51
 uint16_t receivedWindCount;
 int currentWindCount;
 RTC_DATA_ATTR int prevWindCount;
@@ -360,7 +360,17 @@ void handleWindSpeed()
   {
     REV = (65355 + currentWindCount - prevWindCount);
   }
-  windspeed = (2 * PI * radius * REV * 3.6) / (period * 1000);
+
+  int previousTime;
+  int currentTime = millis();
+  Serial.printf("Current Time: %i", currentTime);
+  float period = (currentTime - previousTime) / 1000;
+  Serial.printf("Time Elapsed: %.4f", period);
+  Serial.printf("Revolutions: %i", REV);
+  windspeed = ((2 * PI * radius / 1000 * REV) / period) * 3.6;
+
+  previousTime = currentTime;
+
   prevWindCount = currentWindCount;
   String WindSpeed_Value = String(windspeed);
   server.send(200, "text/plain", WindSpeed_Value);
