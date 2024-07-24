@@ -2,12 +2,12 @@
 #include <Wire.h>
 
 #include <WiFi.h>
-const char* ssid = "Kloudtech Weather Data";
-const char* password = "kloudtech";
+const char *ssid = "Kloudtech Weather Data";
+const char *password = "kloudtech";
 
 #include <WebServer.h>
 #include <PageIndex.h>
-WebServer server(80);  // Web server on port 80
+WebServer server(80); // Web server on port 80
 
 // Sleep Factors
 #define uS_TO_S_FACTOR 1000000ULL /* Conversion factor for micro seconds to seconds */
@@ -174,17 +174,21 @@ String getTime()
   return timeString;
 }
 
-void handleRoot() {
-  String s = MAIN_page; // Read HTML contents
+void handleRoot()
+{
+  String s = MAIN_page;             // Read HTML contents
   server.send(200, "text/html", s); // Send web page
 }
 
 // Saving to SD Card
-void logDataToSDCard() {
-  if (!SD.begin(CS, spi)) {
+void logDataToSDCard()
+{
+  if (!SD.begin(CS, spi))
+  {
     Serial.println(" >Failed. Skipping SD Storage");
   }
-  else {
+  else
+  {
     Serial.println("SD Card Initiation Complete");
     String filename = getFileName();
     String datetime = getTime();
@@ -201,49 +205,50 @@ void logDataToSDCard() {
 }
 
 // Sensor readings
-void handleBMETemperature() {
+void handleBMETemperature()
+{
   t1 = bme.readTemperature();
   String Temperature1_Value = String(t1);
   server.send(200, "text/plain", Temperature1_Value); // Send Temperature value only to client ajax request
-  logDataToSDCard();
 }
 
-void handleBMEHumidity() {
+void handleBMEHumidity()
+{
   h1 = bme.readHumidity();
   String Humidity1_Value = String(h1);
   server.send(200, "text/plain", Humidity1_Value); // Send Temperature value only to client ajax request
-  logDataToSDCard();
 }
 
-void handleBMEPressure() {
-  p1 = bme.readPressure()/100;
+void handleBMEPressure()
+{
+  p1 = bme.readPressure() / 100;
   String Pressure1_Value = String(p1);
   server.send(200, "text/plain", Pressure1_Value); // Send Temperature value only to client ajax request
-  logDataToSDCard();
 }
 
-void handleBMPTemperature() {
+void handleBMPTemperature()
+{
   t2 = bmp.readTemperature();
   String Temperature2_Value = String(t2);
   server.send(200, "text/plain", Temperature2_Value);
-  logDataToSDCard();
 }
 
-void handleBMPPressure() {
+void handleBMPPressure()
+{
   p2 = bmp.readPressure() / 100;
   String Pressure2_Value = String(p2);
   server.send(200, "text/plain", Pressure2_Value);
-  logDataToSDCard();
 }
 
-void handleDHTHumidity() {
+void handleDHTHumidity()
+{
   h2 = dht.readHumidity();
   String Humidity2_Value = String(h2);
   server.send(200, "text/plain", Humidity2_Value);
-  logDataToSDCard();
 }
 
-void handleWindDirection() {
+void handleWindDirection()
+{
   Wire.beginTransmission(0x36); // connect to the sensor
   Wire.write(0x0D);             // figure 21 - register map: Raw angle (7:0)
   Wire.endTransmission();       // end transmission
@@ -276,57 +281,81 @@ void handleWindDirection() {
     correctedAngle = correctedAngle + 360; // correction for negative numbers (i.e. -15 becomes +345)
   }
 
+  correctedAngle = correctedAngle + 120;
+
+  if (correctedAngle > 360) // if the calculated angle is negative, we need to "normalize" it
+  {
+    correctedAngle = correctedAngle - 360; // correction for negative numbers (i.e. -15 becomes +345)
+  }
+
   String WindDirection_Value = String(correctedAngle);
   server.send(200, "text/plain", WindDirection_Value);
-  logDataToSDCard();
 }
 
-void handleLight() {
+void handleLight()
+{
   lux = lightMeter.readLightLevel();
   String Light_Value = String(lux);
   server.send(200, "text/plain", Light_Value);
-  logDataToSDCard();
 }
 
-void handleUV() {
+void handleUV()
+{
   sensorValue = analogRead(UVPIN);
   sensorVoltage = sensorValue * (3.3 / 4095);
   UV_index = sensorVoltage / 0.1;
   String UV_Value = String(UV_index);
   server.send(200, "text/plain", UV_Value);
-  logDataToSDCard();
 }
 
-void handlePrecipitation() {
-  while (2 < Wire.available()) {
+void handlePrecipitation()
+{
+  Serial.println("==========Connecting to Rain Gauge==========");
+  Wire.begin();
+  Wire.requestFrom(SLAVE, 4);
+  while (2 < Wire.available())
+  {
     byte msb = Wire.read();
     byte lsb = Wire.read();
     receivedRainCount = (msb << 8) | lsb;
   }
+
+  Serial.printf("Current Rain Count: %.2i \n", currentRainCount);
+  Serial.printf("Recieved Rain Count: %.2i \n", receivedRainCount);
   currentRainCount = receivedRainCount;
-  if ((currentRainCount - prevRainCount) > -1) {
+
+  Serial.printf("Previous Rain Count: %.2i \n", prevRainCount);
+  if ((currentRainCount - prevRainCount) > -1)
+  {
     rain = (currentRainCount - prevRainCount) * tipValue;
   }
-  else {
+  else
+  {
     rain = (65535 + currentRainCount - prevRainCount) * tipValue;
   }
+
+  Serial.printf("Rain Measurement: %.2f \n", rain);
   prevRainCount = currentRainCount;
+
   String Precipitation_Value = String(rain);
   server.send(200, "text/plain", Precipitation_Value);
-  logDataToSDCard();
 }
 
-void handleWindSpeed() {
-  while (Wire.available()) {
+void handleWindSpeed()
+{
+  while (Wire.available())
+  {
     byte msb = Wire.read();
     byte lsb = Wire.read();
     receivedWindCount = (msb << 8) | lsb;
   }
   currentWindCount = receivedWindCount;
-  if ((currentWindCount - prevWindCount) > -1) {
+  if ((currentWindCount - prevWindCount) > -1)
+  {
     REV = (currentWindCount - prevWindCount);
   }
-  else {
+  else
+  {
     REV = (65355 + currentWindCount - prevWindCount);
   }
   windspeed = (2 * PI * radius * REV * 3.6) / (period * 1000);
@@ -336,11 +365,12 @@ void handleWindSpeed() {
   logDataToSDCard();
 }
 
-void setup() {
+void setup()
+{
   // Initialize Serial Monitor
   Serial.begin(115200);
   delay(500);
-  Serial.println("");
+  Serial.println("=====Opening Serial Monitor====");
 
   // Set-up Access Point
   Serial.println("Setting AP...");
@@ -353,71 +383,86 @@ void setup() {
   Wire.begin(21, 22);
 
   // Initialize RTC
-  if (!rtc.begin()) {
+  if (!rtc.begin())
+  {
     Serial.println("Skipping RTC Initialization");
   }
-  else {
+  else
+  {
     Serial.println("RTC Initiation Complete");
   }
 
   // Initialize BME
-  if (!bme.begin(0x76)) {
+  if (!bme.begin(0x76))
+  {
     Serial.println("Could not find a valid BME280 sensor, check wiring!");
-    while (1);
+    while (1)
+      ;
   }
-  else {
+  else
+  {
     Serial.println("BME Initiation Complete");
   }
   delay(10);
 
   // Initialize BMP
-  if (!bmp.begin()) {
+  if (!bmp.begin())
+  {
     Serial.println("Could not find a valid BMP180 sensor, check wiring!");
-    while (1);
+    while (1)
+      ;
   }
-  else {
+  else
+  {
     Serial.println("BMP Initiation Complete");
   }
   delay(10);
 
   // Initialize DHT
   dht.begin();
-  if (isnan(h2)) {
+  if (isnan(h2))
+  {
     Serial.println("Could not find a valid DHT22 sensor, check wiring!");
   }
-  else {
+  else
+  {
     Serial.println("DHT Initiation Complete");
   }
   delay(10);
 
   // Initialize Light sensor
-  if (!lightMeter.begin()) {
+  if (!lightMeter.begin())
+  {
     Serial.println("Could not find a valid BH1750 sensor, check wiring!");
   }
-  else {
+  else
+  {
     Serial.println("BH1750 Initiation Complete");
   }
 
   // Initialize UV
-  if (isnan(sensorValue)) {
+  if (isnan(sensorValue))
+  {
     Serial.println("Could not find a valid UV sensor, check wiring!");
   }
-  else {
+  else
+  {
     Serial.println("UV Initiation Complete");
   }
 
   // Initialize Slave
-  if (!Wire.begin()) {
+  if (!Wire.begin())
+  {
     Serial.println("Could not find a valid Slave Device, check wiring!");
   }
-  else {
+  else
+  {
     Serial.println("Slave Initiation Complete");
   }
-  Wire.requestFrom(SLAVE, 4);
-    
+
   // Initialize SD Card
   spi.begin(SCK, MISO, MOSI, CS);
-    
+
   // Setup Web server routes
   server.on("/", handleRoot);
   server.on("/readBMETemperature", handleBMETemperature);
@@ -437,6 +482,7 @@ void setup() {
   Serial.println("HTTP server started");
 }
 
-void loop() {
-  server.handleClient();  // Handle client requests
+void loop()
+{
+  server.handleClient(); // Handle client requests
 }
