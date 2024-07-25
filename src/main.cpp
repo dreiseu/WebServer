@@ -5,15 +5,20 @@
 const char *ssid = "Kloudtech Weather Data";
 const char *password = "kloudtech";
 
-#include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 
 #include <PageIndex.h>
 AsyncWebServer server(80);
+AsyncEventSource events("/events");
 
-// Sleep Factors
-#define uS_TO_S_FACTOR 1000000ULL /* Conversion factor for micro seconds to seconds */
-#define TIME_TO_SLEEP 60          /* Time ESP32 will go to sleep (in seconds) */
+// TIMERS
+unsigned long lastTime1 = 0;
+unsigned long lastTime2 = 0;
+unsigned long Timer1 = 1000;  // send readings timer
+unsigned long Timer2 = 10000; // send readings timer
+
+int rainArray[7];
+int windArray[7];
 
 // BME
 #include <Adafruit_Sensor.h>
@@ -97,23 +102,6 @@ char data[100];
 #include "RTClib.h"
 RTC_DS3231 rtc;
 
-// void readFile(fs::FS &fs, String path){
-//   Serial.printf("Reading file: %s\n", path);
-
-//   File file = fs.open(path);
-//   if(!file){
-//     Serial.println("Failed to open file for reading");
-//     return;
-//   }
-
-//   Serial.print("Read from file: ");
-//   while(file.available()){
-//     Serial.write(file.read());
-//   }
-//   file.close();
-//   Serial.println("File Closed");
-// }
-
 void appendFile(fs::FS &fs, String path, String message)
 {
   // Serial.printf("Appending to file: %s\n", path);
@@ -176,12 +164,6 @@ String getTime()
   return timeString;
 }
 
-void handleRoot()
-{
-  String s = MAIN_page;             // Read HTML contents
-  server.send(200, "text/html", s); // Send web page
-}
-
 // Saving to SD Card
 void logDataToSDCard()
 {
@@ -207,46 +189,14 @@ void logDataToSDCard()
 }
 
 // Sensor readings
-void handleBMETemperature()
+void initBMEBMPDHT()
 {
   t1 = bme.readTemperature();
-  String Temperature1_Value = String(t1);
-  server.send(200, "text/plain", Temperature1_Value); // Send Temperature value only to client ajax request
-}
-
-void handleBMEHumidity()
-{
   h1 = bme.readHumidity();
-  String Humidity1_Value = String(h1);
-  server.send(200, "text/plain", Humidity1_Value); // Send Temperature value only to client ajax request
-}
-
-void handleBMEPressure()
-{
   p1 = bme.readPressure() / 100;
-  String Pressure1_Value = String(p1);
-  server.send(200, "text/plain", Pressure1_Value); // Send Temperature value only to client ajax request
-}
-
-void handleBMPTemperature()
-{
   t2 = bmp.readTemperature();
-  String Temperature2_Value = String(t2);
-  server.send(200, "text/plain", Temperature2_Value);
-}
-
-void handleBMPPressure()
-{
   p2 = bmp.readPressure() / 100;
-  String Pressure2_Value = String(p2);
-  server.send(200, "text/plain", Pressure2_Value);
-}
-
-void handleDHTHumidity()
-{
   h2 = dht.readHumidity();
-  String Humidity2_Value = String(h2);
-  server.send(200, "text/plain", Humidity2_Value);
 }
 
 void handleWindDirection()
@@ -276,14 +226,14 @@ void handleWindDirection()
   degAngle = rawAngle * 0.087890625;
 
   // recalculate angle
-  correctedAngle = degAngle - startAngle; // this tares the position
+  correctedAngle = degAngle - 11; // this tares the position
 
   if (correctedAngle < 0) // if the calculated angle is negative, we need to "normalize" it
   {
     correctedAngle = correctedAngle + 360; // correction for negative numbers (i.e. -15 becomes +345)
   }
 
-  correctedAngle = correctedAngle + 170;
+  correctedAngle = correctedAngle;
 
   if (correctedAngle > 360) // if the calculated angle is negative, we need to "normalize" it
   {
@@ -291,30 +241,17 @@ void handleWindDirection()
   }
 
   correctedAngle = 360 - correctedAngle;
-
-  String WindDirection_Value = String(correctedAngle);
-  server.send(200, "text/plain", WindDirection_Value);
 }
 
 void handleLight()
 {
   lux = lightMeter.readLightLevel();
-  String Light_Value = String(lux);
-  server.send(200, "text/plain", Light_Value);
-}
-
-void handleUV()
-{
-  sensorValue = analogRead(UVPIN);
-  sensorVoltage = sensorValue * (3.3 / 4095);
-  UV_index = sensorVoltage / 0.1;
-  String UV_Value = String(UV_index);
-  server.send(200, "text/plain", UV_Value);
 }
 
 void handlePrecipitation()
 {
   Serial.println("==========Connecting to Rain Gauge==========");
+
   Wire.begin();
   Wire.requestFrom(SLAVE, 4);
   while (2 < Wire.available())
@@ -324,25 +261,26 @@ void handlePrecipitation()
     receivedRainCount = (msb << 8) | lsb;
   }
 
-  Serial.printf("Current Rain Count: %.2i \n", currentRainCount);
-  Serial.printf("Recieved Rain Count: %.2i \n", receivedRainCount);
-  currentRainCount = receivedRainCount;
-
-  Serial.printf("Previous Rain Count: %.2i \n", prevRainCount);
-  if ((currentRainCount - prevRainCount) > -1)
+  for (int i = 6; i > 0; i--)
   {
-    rain = (currentRainCount - prevRainCount) * tipValue;
+    rainArray[i] = rainArray[i - 1];
+  }
+  rainArray[0] = receivedRainCount;
+
+  Serial.printf("Current Rain Count: %.2i \n", currentRainCount);
+  Serial.printf("Recieved Rain Count: %.2i \n", rainArray[0]);
+  Serial.printf("Previous Rain Count: %.2i \n", rainArray[6]);
+
+  if ((rainArray[0] - rainArray[6]) > -1)
+  {
+    rain = (rainArray[0] - rainArray[6]) * tipValue;
   }
   else
   {
-    rain = (65535 + currentRainCount - prevRainCount) * tipValue;
+    rain = (65535 + rainArray[0] - rainArray[6]) * tipValue;
   }
 
   Serial.printf("Rain Measurement: %.2f \n", rain);
-  prevRainCount = currentRainCount;
-
-  String Precipitation_Value = String(rain);
-  server.send(200, "text/plain", Precipitation_Value);
 }
 
 void handleWindSpeed()
@@ -353,30 +291,80 @@ void handleWindSpeed()
     byte lsb = Wire.read();
     receivedWindCount = (msb << 8) | lsb;
   }
-  currentWindCount = receivedWindCount;
-  if ((currentWindCount - prevWindCount) > -1)
+
+  for (int i = 6; i > 0; i--)
   {
-    REV = (currentWindCount - prevWindCount);
+    windArray[i] = windArray[i - 1];
+  }
+  windArray[0] = receivedWindCount;
+
+  if ((windArray[0] - windArray[6]) > -1)
+  {
+    REV = (windArray[0] - windArray[6]);
   }
   else
   {
-    REV = (65355 + currentWindCount - prevWindCount);
+    REV = (65355 + windArray[0] - windArray[6]);
   }
 
-  int previousTime;
-  int currentTime = millis();
-  Serial.printf("Current Time: %i", currentTime);
-  float period = (currentTime - previousTime) / 1000;
-  Serial.printf("Time Elapsed: %.4f", period);
+  float period = 10 * 60;
+  Serial.printf("Time Elapsed: %i", period);
   Serial.printf("Revolutions: %i", REV);
   windspeed = ((2 * PI * radius / 1000 * REV) / period) * 3.6;
+}
 
-  previousTime = currentTime;
-
-  prevWindCount = currentWindCount;
-  String WindSpeed_Value = String(windspeed);
-  server.send(200, "text/plain", WindSpeed_Value);
-  logDataToSDCard();
+String processor(const String &var)
+{
+  initBMEBMPDHT();
+  handleWindDirection();
+  handleLight();
+  handlePrecipitation();
+  handleWindSpeed();
+  // Serial.println(var);
+  if (var == "T1")
+  {
+    return String(t1);
+  }
+  else if (var == "H1")
+  {
+    return String(h1);
+  }
+  else if (var == "P1")
+  {
+    return String(p1);
+  }
+  else if (var == "T2")
+  {
+    return String(t2);
+  }
+  else if (var == "H2")
+  {
+    return String(h2);
+  }
+  else if (var == "P2")
+  {
+    return String(p2);
+  }
+  else if (var == "WINDDIR")
+  {
+    return String(correctedAngle);
+  }
+  else if (var == "LIGHT")
+  {
+    return String(lux);
+  }
+  else if (var == "UV")
+  {
+    return String(UV_index);
+  }
+  else if (var == "RAIN")
+  {
+    return String(rain);
+  }
+  else if (var == "WINDSPEED")
+  {
+    return String(windspeed);
+  }
 }
 
 void setup()
@@ -477,26 +465,53 @@ void setup()
   // Initialize SD Card
   spi.begin(SCK, MISO, MOSI, CS);
 
-  // Setup Web server routes
-  server.on("/", handleRoot);
-  server.on("/readBMETemperature", handleBMETemperature);
-  server.on("/readBMEHumidity", handleBMEHumidity);
-  server.on("/readBMEPressure", handleBMEPressure);
-  server.on("/readBMPTemperature", handleBMPTemperature);
-  server.on("/readBMPPressure", handleBMPPressure);
-  server.on("/readDHTHumidity", handleDHTHumidity);
-  server.on("/readWindDirection", handleWindDirection);
-  server.on("/readLight", handleLight);
-  server.on("/readUV", handleUV);
-  server.on("/readPrecipitation", handlePrecipitation);
-  server.on("/readWindSpeed", handleWindSpeed);
+  // Handle Web Server
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+            { request->send_P(200, "text/html", MAIN_page, processor); });
 
-  // Start server
+  // Handle Web Server Events
+  events.onConnect([](AsyncEventSourceClient *client)
+                   {
+    if(client->lastId()){
+      Serial.printf("Client reconnected! Last message ID that it got is: %u\n", client->lastId());
+    }
+    // send event with message "hello!", id current millis
+    // and set reconnect delay to 1 second
+    client->send("hello!", NULL, millis(), 10000); });
+  server.addHandler(&events);
   server.begin();
   Serial.println("HTTP server started");
 }
 
 void loop()
 {
-  server.handleClient(); // Handle client requests
+  if ((millis() - lastTime1) > Timer1)
+  {
+    initBMEBMPDHT();
+    handleWindDirection();
+    handleLight();
+    // Send Events to the Web Server with the Sensor Readings
+    events.send("ping", NULL, millis());
+    events.send(String(correctedAngle).c_str(), "correctedAngle", millis());
+    events.send(String(lux).c_str(), "lux", millis());
+    events.send(String(t1).c_str(), "t1", millis());
+    events.send(String(h1).c_str(), "h1", millis());
+    events.send(String(p1).c_str(), "p1", millis());
+    events.send(String(t2).c_str(), "t2", millis());
+    events.send(String(h2).c_str(), "h2", millis());
+    events.send(String(p2).c_str(), "p2", millis());
+    lastTime1 = millis();
+  }
+
+  if ((millis() - lastTime2) > Timer2)
+  {
+
+    handlePrecipitation();
+    handleWindSpeed();
+    // Send Events to the Web Server with the Sensor Readings
+    events.send("ping", NULL, millis());
+    events.send(String(rain).c_str(), "rain", millis());
+    events.send(String(windspeed).c_str(), "windspeed", millis());
+    lastTime2 = millis();
+  }
 }
