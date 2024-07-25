@@ -181,7 +181,7 @@ const char MAIN_page[] PROGMEM = R"=====(
                 <h2>Precipitation: </h2>
                 <p>
                     <span id="PrecipitationValue">%RAIN%</span>
-                    <sup class="units">mm</sup>
+                    <sup class="units">mm/hr</sup>
                 </p>
             </div>
             <!--Wind Speed-->
@@ -189,6 +189,14 @@ const char MAIN_page[] PROGMEM = R"=====(
                 <h2>Wind Speed: </h2>
                 <p>
                     <span id="WindSpeedValue">%WINDSPEED%</span>
+                    <sup class="units">kph</sup>
+                </p>
+            </div>
+            <!--Gust-->
+            <div class="card">
+                <h2>Gust: </h2>
+                <p>
+                    <span id="gustValue">%GUST%</span>
                     <sup class="units">kph</sup>
                 </p>
             </div>
@@ -261,6 +269,10 @@ const char MAIN_page[] PROGMEM = R"=====(
             source.addEventListener('windspeed', function (e) {
                 console.log("windspeed", e.data);
                 document.getElementById("WindSpeedValue").innerHTML = e.data;
+            }, false);
+            source.addEventListener('gust', function (e) {
+                console.log("gust", e.data);
+                document.getElementById("gustValue").innerHTML = e.data;
             }, false);
 
 

@@ -14,11 +14,12 @@ AsyncEventSource events("/events");
 // TIMERS
 unsigned long lastTime1 = 0;
 unsigned long lastTime2 = 0;
-unsigned long Timer1 = 1000;  // send readings timer
-unsigned long Timer2 = 10000; // send readings timer
+unsigned long Timer1 = 1000; // send readings timer
+unsigned long Timer2 = 3000; // send readings timer
 
-int rainArray[7];
-int windArray[7];
+int rainArray[201];
+int windArray[201];
+float gustArray[201];
 
 // BME
 #include <Adafruit_Sensor.h>
@@ -86,6 +87,7 @@ int REV, radius = 51; // Changed radius from 100 to 51
 uint16_t receivedWindCount;
 int currentWindCount;
 RTC_DATA_ATTR int prevWindCount;
+float gust;
 
 // SD Card
 #include "FS.h"
@@ -261,7 +263,7 @@ void handlePrecipitation()
     receivedRainCount = (msb << 8) | lsb;
   }
 
-  for (int i = 6; i > 0; i--)
+  for (int i = 200; i > 0; i--)
   {
     rainArray[i] = rainArray[i - 1];
   }
@@ -271,13 +273,13 @@ void handlePrecipitation()
   Serial.printf("Recieved Rain Count: %.2i \n", rainArray[0]);
   Serial.printf("Previous Rain Count: %.2i \n", rainArray[6]);
 
-  if ((rainArray[0] - rainArray[6]) > -1)
+  if ((rainArray[0] - rainArray[200]) > -1)
   {
-    rain = (rainArray[0] - rainArray[6]) * tipValue;
+    rain = (rainArray[0] - rainArray[200]) * tipValue;
   }
   else
   {
-    rain = (65535 + rainArray[0] - rainArray[6]) * tipValue;
+    rain = (65535 + rainArray[0] - rainArray[200]) * tipValue;
   }
 
   Serial.printf("Rain Measurement: %.2f \n", rain);
@@ -292,25 +294,45 @@ void handleWindSpeed()
     receivedWindCount = (msb << 8) | lsb;
   }
 
-  for (int i = 6; i > 0; i--)
+  for (int i = 200; i > 0; i--)
   {
     windArray[i] = windArray[i - 1];
   }
   windArray[0] = receivedWindCount;
 
-  if ((windArray[0] - windArray[6]) > -1)
+  if ((windArray[0] - windArray[200]) > -1)
   {
-    REV = (windArray[0] - windArray[6]);
+    REV = (windArray[0] - windArray[200]);
   }
   else
   {
-    REV = (65355 + windArray[0] - windArray[6]);
+    REV = (65355 + windArray[0] - windArray[200]);
   }
 
-  float period = 10 * 60;
+  float period = 3 * 200;
   Serial.printf("Time Elapsed: %i", period);
   Serial.printf("Revolutions: %i", REV);
-  windspeed = ((2 * PI * radius / 1000 * REV) / period) * 3.6;
+  windspeed = ((REV * 2 * PI * radius / 1000) / period) * 3.6;
+
+  float gust_period = 3;
+  float gust_i = ((REV * 2 * PI * radius / 1000) / gust_period) * 3.6;
+  for (int i = 200; i > 0; i--)
+  {
+    gustArray[i] = gustArray[i - 1];
+  }
+  gustArray[0] = gust_i;
+  int n = sizeof(gustArray) / sizeof(gustArray[0]);
+
+  int maxGust = gustArray[0];
+
+  for (int i = 1; i < n; ++i)
+  {
+    if (gustArray[i] > maxGust)
+    {
+      maxGust = gustArray[i]; // Update maxVal if the current element is greater
+    }
+  }
+  gust = maxGust;
 }
 
 String processor(const String &var)
@@ -364,6 +386,10 @@ String processor(const String &var)
   else if (var == "WINDSPEED")
   {
     return String(windspeed);
+  }
+  else if (var == "GUST")
+  {
+    return String(gust);
   }
 }
 
@@ -505,13 +531,13 @@ void loop()
 
   if ((millis() - lastTime2) > Timer2)
   {
-
     handlePrecipitation();
     handleWindSpeed();
     // Send Events to the Web Server with the Sensor Readings
     events.send("ping", NULL, millis());
     events.send(String(rain).c_str(), "rain", millis());
     events.send(String(windspeed).c_str(), "windspeed", millis());
+    events.send(String(gust).c_str(), "gust", millis());
     lastTime2 = millis();
   }
 }
