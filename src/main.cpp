@@ -5,9 +5,11 @@
 const char *ssid = "Kloudtech Weather Data";
 const char *password = "kloudtech";
 
-#include <WebServer.h>
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
+
 #include <PageIndex.h>
-WebServer server(80); // Web server on port 80
+AsyncWebServer server(80);
 
 // Sleep Factors
 #define uS_TO_S_FACTOR 1000000ULL /* Conversion factor for micro seconds to seconds */
