@@ -24,8 +24,6 @@ float gustArray[201];
 // BME
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
-#define BME_SDA 21
-#define BME_SCL 22
 Adafruit_BME280 bme;
 float t1 = 0;
 float h1 = 0;
@@ -45,19 +43,19 @@ DHT dht(DHTPIN, DHTTYPE);
 float h2;
 
 // AS5600 Library
-int magnetStatus = 0; // value of the status register (MD, ML, MH)
+int magnetStatus = 0;
 
-int lowbyte;    // raw angle 7:0
-word highbyte;  // raw angle 7:0 and 11:8
-int rawAngle;   // final raw angle
-float degAngle; // raw angle in degrees (360/4096 * [value between 0-4095])
+int lowbyte;   
+word highbyte; 
+int rawAngle;   
+float degAngle;
 
-int quadrantNumber, previousquadrantNumber; // quadrant IDs
-float numberofTurns = 0;                    // number of turns
-float correctedAngle = 0;                   // tared angle - based on the startup value
-float startAngle = 0;                       // starting angle
-float totalAngle = 0;                       // total absolute angular displacement
-float previoustotalAngle = 0;               // for the display printing
+int quadrantNumber, previousquadrantNumber; 
+float numberofTurns = 0;                    
+float correctedAngle = 0;                  
+float startAngle = 0;                      
+float totalAngle = 0;                      
+float previoustotalAngle = 0;               
 
 // BH1750 Library
 #include <BH1750.h>
@@ -106,44 +104,19 @@ RTC_DS3231 rtc;
 
 void appendFile(fs::FS &fs, String path, String message)
 {
-  // Serial.printf("Appending to file: %s\n", path);
   File file = fs.open(path, FILE_APPEND);
-  // if (!file) {
-  //   Serial.println("Failed to open file for appending");
-  //   return;
-  // }
-  // if (file.println(message)) {
-  //   Serial.println("Message appended");
-  // }
-  // else {
-  //   Serial.println("Append failed");
-  // }
   file.close();
-  // Serial.println("File Closed");
 }
 
 void createHeader(fs::FS &fs, String path, String message)
 {
-  // Serial.printf("Checking if %s exists...", path);
-
   File file = fs.open(path);
   if (!file)
   {
-    // Serial.print("\nFile does not exist creating header files now...");
     File file = fs.open(path, FILE_APPEND);
-    // if (file.println(message))
-    // {
-    //   Serial.println(" >OK");
-    // }
-    // else
-    // {
-    //   Serial.println(" >Failed");
-    // }
     return;
   }
-  // Serial.println(" >OK");
   file.close();
-  // Serial.println("File Closed");
 }
 
 String getFileName()
@@ -183,10 +156,6 @@ void logDataToSDCard()
 
     createHeader(SD, filename, "Date, Temperature 1, Humidity 1, Pressure 1, Temperature 2, Humidity 2, Pressure 2, Wind Direction, Light Intensity, UV Intensity, Precipitation, Wind Speed");
     appendFile(SD, filename, log);
-
-    Serial.print("Data Logged: ");
-    Serial.println(log);
-    Serial.println();
   }
 }
 
@@ -203,18 +172,17 @@ void initBMEBMPDHT()
 
 void handleWindDirection()
 {
-  Wire.beginTransmission(0x36); // connect to the sensor
-  Wire.write(0x0D);             // figure 21 - register map: Raw angle (7:0)
-  Wire.endTransmission();       // end transmission
-  Wire.requestFrom(0x36, 1);    // request from the sensor
+  Wire.beginTransmission(0x36);
+  Wire.write(0x0D);           
+  Wire.endTransmission();  
+  Wire.requestFrom(0x36, 1);
 
   while (Wire.available() == 0)
-    ;                    // wait until it becomes available
-  lowbyte = Wire.read(); // Reading the data after the request
+    ;
+  lowbyte = Wire.read();
 
-  // 11:8 - 4 bits
   Wire.beginTransmission(0x36);
-  Wire.write(0x0C); // figure 21 - register map: Raw angle (11:8)
+  Wire.write(0x0C);
   Wire.endTransmission();
   Wire.requestFrom(0x36, 1);
 
@@ -222,26 +190,24 @@ void handleWindDirection()
     ;
   highbyte = Wire.read();
 
-  // 4 bits have to be shifted to its proper place as we want to build a 12-bit number
-  highbyte = highbyte << 8;      // shifting to left
-  rawAngle = highbyte | lowbyte; // int is 16 bits (as well as the word)
+  highbyte = highbyte << 8;
+  rawAngle = highbyte | lowbyte;
   degAngle = rawAngle * 0.087890625;
 
   // recalculate angle
-  correctedAngle = degAngle - 11; // this tares the position
+  correctedAngle = degAngle - 11;
 
-  if (correctedAngle < 0) // if the calculated angle is negative, we need to "normalize" it
+		// Prevent negative angle
+  if (correctedAngle < 0)
   {
-    correctedAngle = correctedAngle + 360; // correction for negative numbers (i.e. -15 becomes +345)
+    correctedAngle = correctedAngle + 360;
   }
 
-  correctedAngle = correctedAngle;
-
-  if (correctedAngle > 360) // if the calculated angle is negative, we need to "normalize" it
+  // Prevent angle > 360
+  if (correctedAngle > 360)
   {
-    correctedAngle = correctedAngle - 360; // correction for negative numbers (i.e. -15 becomes +345)
+    correctedAngle = correctedAngle - 360;
   }
-
   correctedAngle = 360 - correctedAngle;
 }
 
@@ -252,8 +218,6 @@ void handleLight()
 
 void handlePrecipitation()
 {
-  Serial.println("==========Connecting to Rain Gauge==========");
-
   Wire.begin();
   Wire.requestFrom(SLAVE, 4);
   while (2 < Wire.available())
@@ -267,11 +231,7 @@ void handlePrecipitation()
   {
     rainArray[i] = rainArray[i - 1];
   }
-  rainArray[0] = receivedRainCount;
-
-  Serial.printf("Current Rain Count: %.2i \n", currentRainCount);
-  Serial.printf("Recieved Rain Count: %.2i \n", rainArray[0]);
-  Serial.printf("Previous Rain Count: %.2i \n", rainArray[6]);
+  rainArray[0] = receivedRainCount; 
 
   if ((rainArray[0] - rainArray[200]) > -1)
   {
@@ -282,7 +242,7 @@ void handlePrecipitation()
     rain = (65535 + rainArray[0] - rainArray[200]) * tipValue;
   }
 
-  Serial.printf("Rain Measurement: %.2f \n", rain);
+  // Serial.printf("Rain Measurement: %.2f \n", rain);
 }
 
 void handleWindSpeed()
@@ -342,7 +302,6 @@ String processor(const String &var)
   handleLight();
   handlePrecipitation();
   handleWindSpeed();
-  // Serial.println(var);
   if (var == "T1")
   {
     return String(t1);
@@ -413,7 +372,7 @@ void setup()
   // Initialize RTC
   if (!rtc.begin())
   {
-    Serial.println("Skipping RTC Initialization");
+    Serial.println("RTC failed");
   }
   else
   {
@@ -423,9 +382,7 @@ void setup()
   // Initialize BME
   if (!bme.begin(0x76))
   {
-    Serial.println("Could not find a valid BME280 sensor, check wiring!");
-    while (1)
-      ;
+    Serial.println("BME failed");
   }
   else
   {
@@ -436,9 +393,7 @@ void setup()
   // Initialize BMP
   if (!bmp.begin())
   {
-    Serial.println("Could not find a valid BMP180 sensor, check wiring!");
-    while (1)
-      ;
+    Serial.println("BMP failed");
   }
   else
   {
@@ -450,7 +405,7 @@ void setup()
   dht.begin();
   if (isnan(h2))
   {
-    Serial.println("Could not find a valid DHT22 sensor, check wiring!");
+    Serial.println("DHT failed");
   }
   else
   {
@@ -461,7 +416,7 @@ void setup()
   // Initialize Light sensor
   if (!lightMeter.begin())
   {
-    Serial.println("Could not find a valid BH1750 sensor, check wiring!");
+    Serial.println("BH1750 failed");
   }
   else
   {
@@ -471,7 +426,7 @@ void setup()
   // Initialize UV
   if (isnan(sensorValue))
   {
-    Serial.println("Could not find a valid UV sensor, check wiring!");
+    Serial.println("UV failed");
   }
   else
   {
@@ -481,7 +436,7 @@ void setup()
   // Initialize Slave
   if (!Wire.begin())
   {
-    Serial.println("Could not find a valid Slave Device, check wiring!");
+    Serial.println("Slave Device failed");
   }
   else
   {
@@ -497,13 +452,14 @@ void setup()
 
   // Handle Web Server Events
   events.onConnect([](AsyncEventSourceClient *client)
-                   {
-    if(client->lastId()){
+  {
+    if(client->lastId())
+			 {
       Serial.printf("Client reconnected! Last message ID that it got is: %u\n", client->lastId());
     }
-    // send event with message "hello!", id current millis
     // and set reconnect delay to 1 second
-    client->send("hello!", NULL, millis(), 10000); });
+    client->send("hello!", NULL, millis(), 10000); 
+  });
   server.addHandler(&events);
   server.begin();
   Serial.println("HTTP server started");
