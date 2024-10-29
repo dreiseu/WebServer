@@ -13,8 +13,8 @@
         href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Sen:wght@400..800&display=swap"
         rel="stylesheet">
     <script src="https://kit.fontawesome.com/af2d673681.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- <link rel="stylesheet" href="./output.css"> -->
+    <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+    <link rel="stylesheet" href="./output.css">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -368,17 +368,17 @@
         function getBMETemperatureData() {
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function () {
-                if (this.readyState == 4 && this.status == 200) {
+                // if (this.readyState == 4 && this.status == 200) {
                     document.getElementById("BMETemperatureValue").innerHTML =
                         this.responseText;
-                }
-                else {
-                    temperatureClass = document.getElementsByClassName("temperature");
-                    for (var i = 0; i < temperatureClass.length; i++) {
-                        temperatureClass[i].classList.add("down")
-                    }
-                    document.getElementById("BMETemperatureValue").innerHTML = $noData;
-                }
+                // }
+                // else {
+                //     temperatureClass = document.getElementsByClassName("temperature");
+                //     for (var i = 0; i < temperatureClass.length; i++) {
+                //         temperatureClass[i].classList.add("down")
+                //     }
+                //     document.getElementById("BMETemperatureValue").innerHTML = $noData;
+                // }
             };
             xhttp.open("GET", "readBMETemperature", true);
             xhttp.send();

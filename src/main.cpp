@@ -2,8 +2,10 @@
 #include <Wire.h>
 
 #include <WiFi.h>
-const char *ssid = "Kloudtech Weather Data";
-const char *password = "kloudtech";
+// const char *ssid = "Kloudtech Weather Data";
+// const char *password = "kloudtech";
+const char *ssid = "KT 2.4";
+const char *password = "J@yGsumm!t";
 
 #include <WebServer.h>
 #include <PageIndex.h>
@@ -385,11 +387,24 @@ void setup()
   Serial.println("=====Opening Serial Monitor====");
 
   // Set-up Access Point
-  Serial.println("Setting AP...");
-  WiFi.softAP(ssid, password);
-  IPAddress IP = WiFi.softAPIP();
-  Serial.print("AP IP address: ");
-  Serial.println(IP);
+  // Serial.println("Setting AP...");
+  // WiFi.softAP(ssid, password);
+  // IPAddress IP = WiFi.softAPIP();
+  // Serial.print("AP IP address: ");
+  // Serial.println(IP);
+
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  // Print local IP address and start web server
+  Serial.println("");
+  Serial.println("WiFi connected.");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
 
   // Initialize Wire I2C
   Wire.begin(21, 22);
@@ -418,76 +433,76 @@ void setup()
   delay(10);
 
   // Initialize BMP
-  if (!bmp.begin())
-  {
-    Serial.println("Could not find a valid BMP180 sensor, check wiring!");
-    while (1)
-      ;
-  }
-  else
-  {
-    Serial.println("BMP Initiation Complete");
-  }
-  delay(10);
+  // if (!bmp.begin())
+  // {
+  //   Serial.println("Could not find a valid BMP180 sensor, check wiring!");
+  //   while (1)
+  //     ;
+  // }
+  // else
+  // {
+  //   Serial.println("BMP Initiation Complete");
+  // }
+  // delay(10);
 
-  // Initialize DHT
-  dht.begin();
-  if (isnan(h2))
-  {
-    Serial.println("Could not find a valid DHT22 sensor, check wiring!");
-  }
-  else
-  {
-    Serial.println("DHT Initiation Complete");
-  }
-  delay(10);
+  // // Initialize DHT
+  // dht.begin();
+  // if (isnan(h2))
+  // {
+  //   Serial.println("Could not find a valid DHT22 sensor, check wiring!");
+  // }
+  // else
+  // {
+  //   Serial.println("DHT Initiation Complete");
+  // }
+  // delay(10);
 
-  // Initialize Light sensor
-  if (!lightMeter.begin())
-  {
-    Serial.println("Could not find a valid BH1750 sensor, check wiring!");
-  }
-  else
-  {
-    Serial.println("BH1750 Initiation Complete");
-  }
+  // // Initialize Light sensor
+  // if (!lightMeter.begin())
+  // {
+  //   Serial.println("Could not find a valid BH1750 sensor, check wiring!");
+  // }
+  // else
+  // {
+  //   Serial.println("BH1750 Initiation Complete");
+  // }
 
-  // Initialize UV
-  if (isnan(sensorValue))
-  {
-    Serial.println("Could not find a valid UV sensor, check wiring!");
-  }
-  else
-  {
-    Serial.println("UV Initiation Complete");
-  }
+  // // Initialize UV
+  // if (isnan(sensorValue))
+  // {
+  //   Serial.println("Could not find a valid UV sensor, check wiring!");
+  // }
+  // else
+  // {
+  //   Serial.println("UV Initiation Complete");
+  // }
 
-  // Initialize Slave
-  if (!Wire.begin())
-  {
-    Serial.println("Could not find a valid Slave Device, check wiring!");
-  }
-  else
-  {
-    Serial.println("Slave Initiation Complete");
-  }
+  // // Initialize Slave
+  // if (!Wire.begin())
+  // {
+  //   Serial.println("Could not find a valid Slave Device, check wiring!");
+  // }
+  // else
+  // {
+  //   Serial.println("Slave Initiation Complete");
+  // }
 
-  // Initialize SD Card
-  spi.begin(SCK, MISO, MOSI, CS);
+  // // Initialize SD Card
+  // spi.begin(SCK, MISO, MOSI, CS);
 
   // Setup Web server routes
   server.on("/", handleRoot);
   server.on("/readBMETemperature", handleBMETemperature);
   server.on("/readBMEHumidity", handleBMEHumidity);
   server.on("/readBMEPressure", handleBMEPressure);
-  server.on("/readBMPTemperature", handleBMPTemperature);
-  server.on("/readBMPPressure", handleBMPPressure);
-  server.on("/readDHTHumidity", handleDHTHumidity);
-  server.on("/readWindDirection", handleWindDirection);
-  server.on("/readLight", handleLight);
-  server.on("/readUV", handleUV);
-  server.on("/readPrecipitation", handlePrecipitation);
-  server.on("/readWindSpeed", handleWindSpeed);
+  // server.on("/readBMPTemperature", handleBMPTemperature);
+  // server.on("/readBMPPressure", handleBMPPressure);
+  // server.on("/readDHTHumidity", handleDHTHumidity);
+  // server.on("/readWindDirection", handleWindDirection);
+  // server.on("/readLight", handleLight);
+  // server.on("/readUV", handleUV);
+  // server.on("/readPrecipitation", handlePrecipitation);
+  // server.on("/readWindSpeed", handleWindSpeed);
 
   // Start server
   server.begin();
