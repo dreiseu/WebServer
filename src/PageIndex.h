@@ -112,7 +112,7 @@ const char MAIN_page[] PROGMEM = R"=====(
     </header>
     <main>
         <section class="grid-container">
-            <!--BME Temperature-->
+            <!--BME 1 Temperature-->
             <div class="card">
                 <h2>Temperature 1: </h2>
                 <p>
@@ -120,7 +120,7 @@ const char MAIN_page[] PROGMEM = R"=====(
                     <sup class="units">&deg;C</sup>
                 </p>
             </div>
-            <!--BME Humidity-->
+            <!--BME 1 Humidity-->
             <div class="card">
                 <h2>Humidity 1: </h2>
                 <p>
@@ -128,7 +128,7 @@ const char MAIN_page[] PROGMEM = R"=====(
                     <sup class="units">%</sup>
                 </p>
             </div>
-            <!--BME Pressure-->
+            <!--BME 1 Pressure-->
             <div class="card">
                 <h2>Pressure 1: </h2>
                 <p>
@@ -136,7 +136,7 @@ const char MAIN_page[] PROGMEM = R"=====(
                     <sup class="units">mb</sup>
                 </p>
             </div>
-            <!--BMP Temperature-->
+            <!--BME 2 Temperature-->
             <div class="card">
                 <h2>Temperature 2: </h2>
                 <p>
@@ -144,7 +144,7 @@ const char MAIN_page[] PROGMEM = R"=====(
                     <sup class="units">&deg;C</sup>
                 </p>
             </div>
-            <!--DHT Humidity-->
+            <!--BME 2 Humidity-->
             <div class="card">
                 <h2>Humidity 2: </h2>
                 <p>
@@ -152,7 +152,7 @@ const char MAIN_page[] PROGMEM = R"=====(
                     <sup class="units">%</sup>
                 </p>
             </div>
-            <!--BMP Pressure-->
+            <!--BME 2 Pressure-->
             <div class="card">
                 <h2>Pressure 2: </h2>
                 <p>
@@ -209,17 +209,21 @@ const char MAIN_page[] PROGMEM = R"=====(
     </main>
     <script>
         setInterval(function () {
-            getBMETemperatureData();
-            getBMEHumidityData();
-            getBMEPressureData();
-            getBMPTemperatureData();
-            getBMPPressureData();
-            getDHTHumidityData();
+            getBME1tempData();
+            getBME2tempData();
+            getBME3tempData();
+            getBME1humidData();
+            getBME2humidData();
+            getBME3humidData();
+            getBME1presData();
+            getBME2presData();
+            getBME3presData();
             getWindDirectionData();
             getLightData();
             getUVData();
             getPrecipitationData();
             getWindSpeedData();
+            getGustData();
         }, 60000);
 
         setInterval(function () {
@@ -227,80 +231,117 @@ const char MAIN_page[] PROGMEM = R"=====(
             Time_Date();
         }, 1000);
 
-        // BME Temperature
-        function getBMETemperatureData() {
+        // BME 1 Temperature
+        function getBME1tempData() {
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
-                    document.getElementById("BMETemperatureValue").innerHTML =
+                    document.getElementById("BME1tempValue").innerHTML =
                         this.responseText;
                 }
             };
-            xhttp.open("GET", "readBMETemperature", true);
+            xhttp.open("GET", "readBME1temp", true);
             xhttp.send();
         }
-        // BME Humidity
-        function getBMEHumidityData() {
+        // BME 2 Temperature
+        function getBME2tempData() {
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
-                    document.getElementById("BMEHumidityValue").innerHTML =
+                    document.getElementById("BME2tempValue").innerHTML =
                         this.responseText;
                 }
             };
-            xhttp.open("GET", "readBMEHumidity", true);
-            xhttp.send();
-        }
-
-        // BME Pressure
-        function getBMEPressureData() {
-            var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function () {
-                if (this.readyState == 4 && this.status == 200) {
-                    document.getElementById("BMEPressureValue").innerHTML =
-                        this.responseText;
-                }
-            };
-            xhttp.open("GET", "readBMEPressure", true);
+            xhttp.open("GET", "readBME2temp", true);
             xhttp.send();
         }
 
-        // BMP Temperature
-        function getBMPTemperatureData() {
+        // BME 3 Temperature
+        function getBME3tempData() {
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
-                    document.getElementById("BMPTemperatureValue").innerHTML =
+                    document.getElementById("BME3tempValue").innerHTML =
                         this.responseText;
                 }
             };
-            xhttp.open("GET", "readBMPTemperature", true);
+            xhttp.open("GET", "readBME3temp", true);
             xhttp.send();
         }
 
-        // DHT Humidity
-        function getDHTHumidityData() {
+        // BME 1 Humidity
+        function getBME1humidData() {
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
-                    document.getElementById("DHTHumidityValue").innerHTML =
+                    document.getElementById("BME1humidValue").innerHTML =
                         this.responseText;
                 }
             };
-            xhttp.open("GET", "readDHTHumidity", true);
+            xhttp.open("GET", "readBME1humid", true);
+            xhttp.send();
+        }
+        // BME 2 Humidity
+        function getBME2humidData() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    document.getElementById("BME2humidValue").innerHTML =
+                        this.responseText;
+                }
+            };
+            xhttp.open("GET", "readBME2humid", true);
             xhttp.send();
         }
 
-        // BMP Pressure
-        function getBMPPressureData() {
+        // BME 3 Humidity
+        function getBME3humidData() {
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
-                    document.getElementById("BMPPressureValue").innerHTML =
+                    document.getElementById("BME3humidValue").innerHTML =
                         this.responseText;
                 }
             };
-            xhttp.open("GET", "readBMPPressure", true);
+            xhttp.open("GET", "readBME3humid", true);
+            xhttp.send();
+        }
+
+        // BME 1 Pressure
+        function getBME1presData() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    document.getElementById("BME1presValue").innerHTML =
+                        this.responseText;
+                }
+            };
+            xhttp.open("GET", "readBME1pres", true);
+            xhttp.send();
+        }
+        // BME 2 Pressure
+        function getBME2presData() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    document.getElementById("BME2presValue").innerHTML =
+                        this.responseText;
+                }
+            };
+            xhttp.open("GET", "readBME2pres", true);
+            xhttp.send();
+        }
+
+        // BME 3 Pressure
+        function getBME3presData() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    document.getElementById("BME3presValue").innerHTML =
+                        this.responseText;
+                }
+            };
+            xhttp.open("GET", "readBME3pres", true);
             xhttp.send();
         }
 
@@ -343,7 +384,7 @@ const char MAIN_page[] PROGMEM = R"=====(
             xhttp.send();
         }
 
-        // Wind Speed
+        // WindSpeed
         function getWindSpeedData() {
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function () {
@@ -353,6 +394,19 @@ const char MAIN_page[] PROGMEM = R"=====(
                 }
             };
             xhttp.open("GET", "readWindSpeed", true);
+            xhttp.send();
+        }
+
+        // Gust
+        function getGustData() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    document.getElementById("GustValue").innerHTML =
+                        this.responseText;
+                }
+            };
+            xhttp.open("GET", "readGust", true);
             xhttp.send();
         }
 
@@ -387,16 +441,20 @@ const char MAIN_page[] PROGMEM = R"=====(
 
         // Refresh Data
         function refreshData() {
-            getBMETemperatureData();
-            getBMEHumidityData();
-            getBMEPressureData();
-            getBMPTemperatureData();
-            getBMPPressureData();
-            getDHTHumidityData();
+            getBME1tempData();
+            getBME2tempData();
+            getBME3tempData();
+            getBME1presData();
+            getBME2presData();
+            getBME3presData();
+            getBME1humidData();
+            getBME2humidData();
+            getBME3humidData();
             getWindDirectionData();
             getLightData();
             getPrecipitationData();
             getWindSpeedData();
+            getGustData();
         }
     </script>
 </body>
