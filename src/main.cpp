@@ -9,6 +9,7 @@ const char *password = "J@yGsumm!t";
 
 #include <WebServer.h>
 #include <PageIndex.h>
+#include <PageIndexCss.h>
 WebServer server(80); // Web server on port 80
 
 // Sleep Factors
@@ -176,10 +177,16 @@ String getTime()
   return timeString;
 }
 
-void handleRoot()
+void handleRootHtml()
 {
-  String s = MAIN_page;             // Read HTML contents
-  server.send(200, "text/html", s); // Send web page
+  String html = MAIN_page;             // Read HTML contents
+  server.send(200, "text/html", html); // Send web page
+}
+
+void handleRootCss()
+{
+  String css = MAIN_page_css;             // Read HTML contents
+  server.send(200, "text/css", css); // Send web page
 }
 
 // Saving to SD Card
@@ -420,17 +427,17 @@ void setup()
   }
 
   // Initialize BME
-  if (!bme.begin(0x76))
-  {
-    Serial.println("Could not find a valid BME280 sensor, check wiring!");
-    while (1)
-      ;
-  }
-  else
-  {
-    Serial.println("BME Initiation Complete");
-  }
-  delay(10);
+  // if (!bme.begin(0x76))
+  // {
+  //   Serial.println("Could not find a valid BME280 sensor, check wiring!");
+  //   while (1)
+  //     ;
+  // }
+  // else
+  // {
+  //   Serial.println("BME Initiation Complete");
+  // }
+  // delay(10);
 
   // Initialize BMP
   // if (!bmp.begin())
@@ -491,7 +498,8 @@ void setup()
   // spi.begin(SCK, MISO, MOSI, CS);
 
   // Setup Web server routes
-  server.on("/", handleRoot);
+  server.on("/", handleRootHtml);
+  server.on("/output.css", handleRootCss);
   server.on("/readBMETemperature", handleBMETemperature);
   server.on("/readBMEHumidity", handleBMEHumidity);
   server.on("/readBMEPressure", handleBMEPressure);
