@@ -177,6 +177,11 @@ String getTime()
   return timeString;
 }
 
+void handleIcon() 
+{ 
+  
+  server.send(200, "image/png", icon.png);
+}
 void handleRootHtml()
 {
   String html = MAIN_page;             // Read HTML contents
@@ -500,6 +505,7 @@ void setup()
   // Setup Web server routes
   server.on("/", handleRootHtml);
   server.on("/output.css", handleRootCss);
+  server.on("/icon.png", handleIcon);
   server.on("/readBMETemperature", handleBMETemperature);
   server.on("/readBMEHumidity", handleBMEHumidity);
   server.on("/readBMEPressure", handleBMEPressure);

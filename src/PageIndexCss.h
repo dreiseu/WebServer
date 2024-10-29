@@ -559,10 +559,6 @@ video {
   margin-top: 5rem;
 }
 
-.flex {
-  display: flex;
-}
-
 .grid {
   display: grid;
 }
@@ -828,4 +824,17 @@ button:hover {
     line-height: 2.5rem;
   }
 }
+
+@media (min-width: 1280px) {
+  .xl\:mt-36 {
+    margin-top: 9rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  .\32xl\:mt-40 {
+    margin-top: 10rem;
+  }
+}
+
 )=====";

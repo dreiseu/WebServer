@@ -215,7 +215,7 @@ const char MAIN_page[] PROGMEM = R"=====(
         </div>
 
 
-        <section class="button-section mt-20 sm:mt-20 md:mt-30 lg:mt-32 ">
+        <section class="button-section mt-20 sm:mt-20 md:mt-30 lg:mt-32 xl:mt-36 2xl:mt-40">
             <button class="button" onclick="downloadCSV()">Download CSV</button>
             <button class="button" onclick="refreshData()">Refresh Data</button>
         </section>
