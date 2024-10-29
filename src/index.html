@@ -230,19 +230,19 @@
         </section>
     </main>
     <script>
-        // setInterval(function () {
-        //     getBMETemperatureData();
-        //     getBMEHumidityData();
-        //     getBMEPressureData();
-        //     // getBMPTemperatureData();
-        //     // getBMPPressureData();
-        //     // getDHTHumidityData();
-        //     // getWindDirectionData();
-        //     // getLightData();
-        //     // getUVData();
-        //     // getPrecipitationData();
-        //     // getWindSpeedData();
-        // }, 1000);
+        setInterval(function () {
+            getBMETemperatureData();
+            getBMEHumidityData();
+            getBMEPressureData();
+            // getBMPTemperatureData();
+            // getBMPPressureData();
+            // getDHTHumidityData();
+            // getWindDirectionData();
+            // getLightData();
+            // getUVData();
+            // getPrecipitationData();
+            getWindSpeedData();
+        }, 1000);
 
         const noData = "No data received";
 
@@ -255,17 +255,8 @@
         function getBMETemperatureData() {
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function () {
-                // if (this.readyState == 4 && this.status == 200) {
-                    document.getElementById("BMETemperatureValue").innerHTML =
-                        this.responseText;
-                // }
-                // else {
-                //     temperatureClass = document.getElementsByClassName("temperature");
-                //     for (var i = 0; i < temperatureClass.length; i++) {
-                //         temperatureClass[i].classList.add("down")
-                //     }
-                //     document.getElementById("BMETemperatureValue").innerHTML = $noData;
-                // }
+                document.getElementById("BMETemperatureValue").innerHTML =
+                    this.responseText;
             };
             xhttp.open("GET", "readBMETemperature", true);
             xhttp.send();
@@ -281,7 +272,7 @@
                         this.responseText;
                 }
             };
-            xhttp.open("GET", "http://192.168.254.167/readBMEHumidity", true);
+            xhttp.open("GET", "readBMEHumidity", true);
             xhttp.send();
             console.log(xhttp.readyState);
         }
@@ -295,7 +286,20 @@
                         this.responseText;
                 }
             };
-            xhttp.open("GET", "http://192.168.254.167/readBMEPressure", true);
+            xhttp.open("GET", "readBMEPressure", true);
+            xhttp.send();
+        }
+
+        // Wind speed
+        function getWindSpeedData() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    document.getElementById("WindSpeedValue").innerHTML =
+                        this.responseText;
+                }
+            };
+            xhttp.open("GET", "readWindSpeed", true);
             xhttp.send();
         }
 
@@ -331,8 +335,9 @@
         // Refresh Data
         function refreshData() {
             getBMETemperatureData();
-            // getBMEHumidityData();
-            // getBMEPressureData();
+            getBMEHumidityData();
+            getBMEPressureData();
+            getWindSpeedData();            
         }
 
     </script>

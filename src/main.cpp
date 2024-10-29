@@ -9,7 +9,7 @@ const char *password = "J@yGsumm!t";
 
 #include <WebServer.h>
 #include <PageIndex.h>
-#include <PageIndexCss.h>
+// #include <PageIndexCss.h>
 WebServer server(80); // Web server on port 80
 
 // Sleep Factors
@@ -38,6 +38,8 @@ float p2;
 #define DHTTYPE DHT22
 DHT dht(DHTPIN, DHTTYPE);
 float h2;
+
+String windSpeedStr = "";
 
 // AS5600 Library
 int magnetStatus = 0; // value of the status register (MD, ML, MH)
@@ -76,12 +78,12 @@ uint16_t receivedRainCount;
 int currentRainCount;
 RTC_DATA_ATTR int prevRainCount;
 
-// Wind Speed
+// Wind Speed and Gust var
 float windspeed;
-int REV, radius = 51; // Changed radius from 100 to 51
-uint16_t receivedWindCount;
-int currentWindCount;
-RTC_DATA_ATTR int prevWindCount;
+int radius = 50, period = 60;
+uint16_t receivedWindCount = 0;
+float gust;
+uint16_t receivedGustCount = 0;
 
 // SD Card
 #include "FS.h"
@@ -177,46 +179,17 @@ String getTime()
   return timeString;
 }
 
-void handleIcon() 
-{ 
-  
-  server.send(200, "image/png", icon.png);
-}
 void handleRootHtml()
 {
   String html = MAIN_page;             // Read HTML contents
   server.send(200, "text/html", html); // Send web page
 }
 
-void handleRootCss()
-{
-  String css = MAIN_page_css;             // Read HTML contents
-  server.send(200, "text/css", css); // Send web page
-}
-
-// Saving to SD Card
-void logDataToSDCard()
-{
-  if (!SD.begin(CS, spi))
-  {
-    Serial.println(" >Failed. Skipping SD Storage");
-  }
-  else
-  {
-    Serial.println("SD Card Initiation Complete");
-    String filename = getFileName();
-    String datetime = getTime();
-    sprintf(data, ",%.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f", t1, h1, p1, t2, h2, p2, correctedAngle, lux, UV_index, rain, windspeed);
-    String log = datetime + data;
-
-    createHeader(SD, filename, "Date, Temperature 1, Humidity 1, Pressure 1, Temperature 2, Humidity 2, Pressure 2, Wind Direction, Light Intensity, UV Intensity, Precipitation, Wind Speed");
-    appendFile(SD, filename, log);
-
-    Serial.print("Data Logged: ");
-    Serial.println(log);
-    Serial.println();
-  }
-}
+// void handleRootCss()
+// {
+//   String css = MAIN_page_css;             // Read HTML contents
+//   server.send(200, "text/css", css); // Send web page
+// }
 
 // Sensor readings
 void handleBMETemperature()
@@ -240,155 +213,17 @@ void handleBMEPressure()
   server.send(200, "text/plain", Pressure1_Value); // Send Temperature value only to client ajax request
 }
 
-void handleBMPTemperature()
-{
-  t2 = bmp.readTemperature();
-  String Temperature2_Value = String(t2);
-  server.send(200, "text/plain", Temperature2_Value);
-}
-
-void handleBMPPressure()
-{
-  p2 = bmp.readPressure() / 100;
-  String Pressure2_Value = String(p2);
-  server.send(200, "text/plain", Pressure2_Value);
-}
-
-void handleDHTHumidity()
-{
-  h2 = dht.readHumidity();
-  String Humidity2_Value = String(h2);
-  server.send(200, "text/plain", Humidity2_Value);
-}
-
-void handleWindDirection()
-{
-  Wire.beginTransmission(0x36); // connect to the sensor
-  Wire.write(0x0D);             // figure 21 - register map: Raw angle (7:0)
-  Wire.endTransmission();       // end transmission
-  Wire.requestFrom(0x36, 1);    // request from the sensor
-
-  while (Wire.available() == 0)
-    ;                    // wait until it becomes available
-  lowbyte = Wire.read(); // Reading the data after the request
-
-  // 11:8 - 4 bits
-  Wire.beginTransmission(0x36);
-  Wire.write(0x0C); // figure 21 - register map: Raw angle (11:8)
-  Wire.endTransmission();
-  Wire.requestFrom(0x36, 1);
-
-  while (Wire.available() == 0)
-    ;
-  highbyte = Wire.read();
-
-  // 4 bits have to be shifted to its proper place as we want to build a 12-bit number
-  highbyte = highbyte << 8;      // shifting to left
-  rawAngle = highbyte | lowbyte; // int is 16 bits (as well as the word)
-  degAngle = rawAngle * 0.087890625;
-
-  // recalculate angle
-  correctedAngle = degAngle - startAngle; // this tares the position
-
-  if (correctedAngle < 0) // if the calculated angle is negative, we need to "normalize" it
-  {
-    correctedAngle = correctedAngle + 360; // correction for negative numbers (i.e. -15 becomes +345)
-  }
-
-  correctedAngle = correctedAngle + 170;
-
-  if (correctedAngle > 360) // if the calculated angle is negative, we need to "normalize" it
-  {
-    correctedAngle = correctedAngle - 360; // correction for negative numbers (i.e. -15 becomes +345)
-  }
-
-  correctedAngle = 360 - correctedAngle;
-
-  String WindDirection_Value = String(correctedAngle);
-  server.send(200, "text/plain", WindDirection_Value);
-}
-
-void handleLight()
-{
-  lux = lightMeter.readLightLevel();
-  String Light_Value = String(lux);
-  server.send(200, "text/plain", Light_Value);
-}
-
-void handleUV()
-{
-  sensorValue = analogRead(UVPIN);
-  sensorVoltage = sensorValue * (3.3 / 4095);
-  UV_index = sensorVoltage / 0.1;
-  String UV_Value = String(UV_index);
-  server.send(200, "text/plain", UV_Value);
-}
-
-void handlePrecipitation()
-{
-  Serial.println("==========Connecting to Rain Gauge==========");
-  Wire.begin();
-  Wire.requestFrom(SLAVE, 4);
-  while (2 < Wire.available())
-  {
-    byte msb = Wire.read();
-    byte lsb = Wire.read();
-    receivedRainCount = (msb << 8) | lsb;
-  }
-
-  Serial.printf("Current Rain Count: %.2i \n", currentRainCount);
-  Serial.printf("Recieved Rain Count: %.2i \n", receivedRainCount);
-  currentRainCount = receivedRainCount;
-
-  Serial.printf("Previous Rain Count: %.2i \n", prevRainCount);
-  if ((currentRainCount - prevRainCount) > -1)
-  {
-    rain = (currentRainCount - prevRainCount) * tipValue;
-  }
-  else
-  {
-    rain = (65535 + currentRainCount - prevRainCount) * tipValue;
-  }
-
-  Serial.printf("Rain Measurement: %.2f \n", rain);
-  prevRainCount = currentRainCount;
-
-  String Precipitation_Value = String(rain);
-  server.send(200, "text/plain", Precipitation_Value);
-}
-
 void handleWindSpeed()
 {
-  while (Wire.available())
-  {
+  // Wind speed
+  if (Wire.available() >= 2) {
     byte msb = Wire.read();
     byte lsb = Wire.read();
     receivedWindCount = (msb << 8) | lsb;
   }
-  currentWindCount = receivedWindCount;
-  if ((currentWindCount - prevWindCount) > -1)
-  {
-    REV = (currentWindCount - prevWindCount);
-  }
-  else
-  {
-    REV = (65355 + currentWindCount - prevWindCount);
-  }
-
-  int previousTime;
-  int currentTime = millis();
-  Serial.printf("Current Time: %i", currentTime);
-  float period = (currentTime - previousTime) / 1000;
-  Serial.printf("Time Elapsed: %.4f", period);
-  Serial.printf("Revolutions: %i", REV);
-  windspeed = ((2 * PI * radius / 1000 * REV) / period) * 3.6;
-
-  previousTime = currentTime;
-
-  prevWindCount = currentWindCount;
-  String WindSpeed_Value = String(windspeed);
-  server.send(200, "text/plain", WindSpeed_Value);
-  logDataToSDCard();
+  windspeed = (2 * PI * radius * receivedWindCount * 3.6) / (period * 1000);
+  windSpeedStr = String(windspeed);
+  server.send(200, "text/plain", windSpeedStr);
 }
 
 void setup()
@@ -504,8 +339,7 @@ void setup()
 
   // Setup Web server routes
   server.on("/", handleRootHtml);
-  server.on("/output.css", handleRootCss);
-  server.on("/icon.png", handleIcon);
+  // server.on("/output.css", handleRootCss);
   server.on("/readBMETemperature", handleBMETemperature);
   server.on("/readBMEHumidity", handleBMEHumidity);
   server.on("/readBMEPressure", handleBMEPressure);
@@ -516,7 +350,7 @@ void setup()
   // server.on("/readLight", handleLight);
   // server.on("/readUV", handleUV);
   // server.on("/readPrecipitation", handlePrecipitation);
-  // server.on("/readWindSpeed", handleWindSpeed);
+  server.on("/readWindSpeed", handleWindSpeed);
 
   // Start server
   server.begin();

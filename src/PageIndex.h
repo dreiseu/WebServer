@@ -16,6 +16,7 @@ const char MAIN_page[] PROGMEM = R"=====(
     <script src="https://kit.fontawesome.com/af2d673681.js" crossorigin="anonymous"></script>
     <!-- <script src="https://cdn.tailwindcss.com"></script> -->
     <link rel="stylesheet" href="./output.css">
+
 </head>
 
 <body>
@@ -38,7 +39,7 @@ const char MAIN_page[] PROGMEM = R"=====(
     </header>
     <main>
         <div
-            class="grid grid-cols-3 gap-4 text-center flex font-nunito size-10/12 sm:size-8/12 md:size-7/12 lg:size-6/12 leading-6">
+            class="grid grid-cols-3 gap-4 text-center font-nunito size-10/12 sm:size-8/12 md:size-7/12 lg:size-6/12 leading-6">
             <!--BME Temperature-->
             <div class="humidity max-w-xs max-w-64 overflow-hidden polygon place-content-center">
                 <div>
@@ -76,129 +77,6 @@ const char MAIN_page[] PROGMEM = R"=====(
                     <span class="units">mb</span>
                 </div>
             </div>
-            <!--BME Temperature 2-->
-            <div class="temperature max-w-xs max-w-64 overflow-hidden polygon place-content-center">
-                <div>
-                    <i class="fa-solid fa-temperature-empty text-xs sm:text-sm md:text-base"></i>
-                    <div class="hidden sm:inline text-xs sm:text-sm md:text-base">Temperature 2</div>
-                </div>
-                <div class="text-xl sm:text-2xl md:text-3xl lg:text-4xl">
-                    <span id="BMETemperatureValue">0</span>
-                    <span class="units">&deg;C</span>
-                </div>
-            </div>
-
-            <!--BME Humidity 2-->
-            <div class="humidity max-w-xs max-w-64 overflow-hidden polygon place-content-center">
-                <div>
-                    <i class="fa-solid fa-water text-xs sm:text-sm md:text-base"></i>
-                    <div class="hidden sm:inline text-xs sm:text-sm md:text-base">Humidity 2</div>
-                </div>
-                <div class="text-xl sm:text-2xl md:text-3xl lg:text-4xl">
-                    <span id="BMEHumidityValue">0</span>
-                    <span class="units">%</span>
-                </div>
-            </div>
-            <!--BME Pressure 2-->
-            <div class="pressure max-w-xs max-w-64 overflow-hidden polygon place-content-center">
-                <div>
-                    <i class="fa-solid fa-arrows-to-circle text-xs sm:text-sm md:text-base"></i>
-                    <div class="hidden sm:inline text-xs sm:text-sm md:text-base">Pressure 2</div>
-                </div>
-                <div class="text-xl sm:text-2xl md:text-3xl lg:text-4xl">
-                    <span id="BMEPressureValue">0</span>
-                    <span class="units">mb</span>
-                </div>
-            </div>
-            <!--BME Temperature 3-->
-            <div class="temperature max-w-xs max-w-64 overflow-hidden polygon place-content-center">
-                <div>
-                    <i class="fa-solid fa-temperature-empty text-xs sm:text-sm md:text-base"></i>
-                    <div class="hidden sm:inline text-xs sm:text-sm md:text-base">Temperature 3</div>
-                </div>
-                <div class="text-xl sm:text-2xl md:text-3xl lg:text-4xl">
-                    <span id="BMETemperatureValue">0</span>
-                    <span class="units">&deg;C</span>
-                </div>
-            </div>
-
-            <!--BME Humidity 3-->
-            <div class="humidity max-w-xs max-w-64 overflow-hidden polygon place-content-center">
-                <div>
-                    <i class="fa-solid fa-water text-xs sm:text-sm md:text-base"></i>
-                    <div class="hidden sm:inline text-xs sm:text-sm md:text-base">Humidity 3</div>
-                </div>
-                <div class="text-xl sm:text-2xl md:text-3xl lg:text-4xl">
-                    <span id="BMEHumidityValue">0</span>
-                    <span class="units">%</span>
-                </div>
-            </div>
-            <!--BME Pressure 3-->
-            <div class="max-w-xs max-w-64 overflow-hidden polygon place-content-center">
-                <div>
-                    <i class="fa-solid fa-arrows-to-circle text-xs sm:text-sm md:text-base"></i>
-                    <div class="hidden sm:inline text-xs sm:text-sm md:text-base">Pressure 3</div>
-                </div>
-                <div class="text-xl sm:text-2xl md:text-3xl lg:text-4xl">
-                    <span id="BMEPressureValue">0</span>
-                    <span class="units">mb</span>
-                </div>
-            </div>
-            <!--AS5600 Wind Direction-->
-            <div class="max-w-xs max-w-64 overflow-hidden polygon place-content-center">
-                <div>
-                    <i class="fa-solid fa-arrow-turn-up text-xs sm:text-sm md:text-base"></i>
-                    <div class="hidden sm:inline text-xs sm:text-sm md:text-base">Wind Direction</div>
-                </div>
-                <div class="text-xl sm:text-2xl md:text-3xl lg:text-4xl">
-                    <span id="WindDirectionValue">0</span>
-                    <span class="units">&deg;</span>
-                </div>
-            </div>
-            <!--BH1750 Light-->
-            <div class="max-w-xs max-w-64 overflow-hidden polygon place-content-center">
-                <div>
-                    <i class="fa-solid fa-lightbulb text-xs sm:text-sm md:text-base"></i>
-                    <div class="hidden sm:inline text-xs sm:text-sm md:text-base">Light Intensity</div>
-                </div>
-                <div class="text-xl sm:text-2xl md:text-3xl lg:text-4xl">
-                    <span id="LightValue">0</span>
-                    <span class="units">lux</span>
-                </div>
-            </div>
-            <!--GUVA S12SD-->
-            <div class="max-w-xs max-w-64 overflow-hidden polygon place-content-center">
-                <div>
-                    <i class="fa-solid fa-sun text-xs sm:text-sm md:text-base"></i>
-                    <div class="hidden sm:inline text-xs sm:text-sm md:text-base">UV Index</div>
-                </div>
-                <div class="text-xl sm:text-2xl md:text-3xl lg:text-4xl">
-                    <span id="UVValue">0</span>
-                </div>
-            </div>
-            <!--Precipitation-->
-            <div class="max-w-xs max-w-64 overflow-hidden polygon place-content-center">
-                <div>
-                    <i class="fa-solid fa-cloud-showers-heavy text-xs sm:text-sm md:text-base"></i>
-                    <div class="hidden sm:inline text-xs sm:text-sm md:text-base">Precipitation</div>
-                </div>
-                <div class="text-xl sm:text-2xl md:text-3xl lg:text-4xl">
-                    <span id="PrecipitationValue">0</span>
-                    <span class="units">mm</span>
-                </div>
-            </div>
-
-            <!--Gust-->
-            <div class="max-w-xs max-w-64 overflow-hidden polygon place-content-center">
-                <div>
-                    <i class="fa-solid fa-wind text-xs sm:text-sm md:text-base"></i>
-                    <div class="hidden sm:inline text-xs sm:text-sm md:text-base">Gust</div>
-                </div>
-                <div class="text-xl sm:text-2xl md:text-3xl lg:text-4xl">
-                    <span id="WindSpeedValue">0</span>
-                    <span class="units">kph</span>
-                </div>
-            </div>
 
             <!--Wind Speed-->
             <div class="max-w-xs max-w-64 overflow-hidden polygon place-content-center">
@@ -230,21 +108,12 @@ const char MAIN_page[] PROGMEM = R"=====(
         </section>
     </main>
     <script>
-        // setInterval(function () {
-        //     getBMETemperatureData();
-        //     getBMEHumidityData();
-        //     getBMEPressureData();
-        //     // getBMPTemperatureData();
-        //     // getBMPPressureData();
-        //     // getDHTHumidityData();
-        //     // getWindDirectionData();
-        //     // getLightData();
-        //     // getUVData();
-        //     // getPrecipitationData();
-        //     // getWindSpeedData();
-        // }, 1000);
-
-        const noData = "No data received";
+        setInterval(function () {
+            getBMETemperatureData();
+            getBMEHumidityData();
+            getBMEPressureData();
+            getWindSpeedData();
+        }, 1000);
 
         setInterval(function () {
             // Call a function repetatively with 1 Second interval
@@ -255,21 +124,11 @@ const char MAIN_page[] PROGMEM = R"=====(
         function getBMETemperatureData() {
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function () {
-                // if (this.readyState == 4 && this.status == 200) {
-                    document.getElementById("BMETemperatureValue").innerHTML =
-                        this.responseText;
-                // }
-                // else {
-                //     temperatureClass = document.getElementsByClassName("temperature");
-                //     for (var i = 0; i < temperatureClass.length; i++) {
-                //         temperatureClass[i].classList.add("down")
-                //     }
-                //     document.getElementById("BMETemperatureValue").innerHTML = $noData;
-                // }
+                document.getElementById("BMETemperatureValue").innerHTML =
+                    this.responseText;
             };
             xhttp.open("GET", "readBMETemperature", true);
             xhttp.send();
-
 
         }
         // BME Humidity
@@ -296,6 +155,19 @@ const char MAIN_page[] PROGMEM = R"=====(
                 }
             };
             xhttp.open("GET", "readBMEPressure", true);
+            xhttp.send();
+        }
+
+        // Wind speed
+        function getWindSpeedData() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    document.getElementById("WindSpeedValue").innerHTML =
+                        this.responseText;
+                }
+            };
+            xhttp.open("GET", "readWindSpeed", true);
             xhttp.send();
         }
 
@@ -333,6 +205,7 @@ const char MAIN_page[] PROGMEM = R"=====(
             getBMETemperatureData();
             getBMEHumidityData();
             getBMEPressureData();
+            getWindSpeedData();            
         }
 
     </script>
