@@ -14,7 +14,8 @@
         rel="stylesheet">
     <script src="https://kit.fontawesome.com/af2d673681.js" crossorigin="anonymous"></script>
     <!-- <script src="https://cdn.tailwindcss.com"></script> -->
-    <link rel="stylesheet" href="./output.css">
+    <!-- <link rel="stylesheet" href="./output.css"> -->
+    <link rel="stylesheet" href="./test.css">
 
 </head>
 
@@ -64,6 +65,7 @@
                     <span class="units">%</span>
                 </div>
             </div>
+            
             <!--BME Pressure-->
             <div class="humidity max-w-xs max-w-64 overflow-hidden polygon place-content-center">
                 <div>
@@ -74,129 +76,6 @@
                     <span id="BMEPressureValue">0</span>
                     <!-- <sup class="units">mb</sup> -->
                     <span class="units">mb</span>
-                </div>
-            </div>
-            <!--BME Temperature 2-->
-            <div class="temperature max-w-xs max-w-64 overflow-hidden polygon place-content-center">
-                <div>
-                    <i class="fa-solid fa-temperature-empty text-xs sm:text-sm md:text-base"></i>
-                    <div class="hidden sm:inline text-xs sm:text-sm md:text-base">Temperature 2</div>
-                </div>
-                <div class="text-xl sm:text-2xl md:text-3xl lg:text-4xl">
-                    <span id="BMETemperatureValue">0</span>
-                    <span class="units">&deg;C</span>
-                </div>
-            </div>
-
-            <!--BME Humidity 2-->
-            <div class="humidity max-w-xs max-w-64 overflow-hidden polygon place-content-center">
-                <div>
-                    <i class="fa-solid fa-water text-xs sm:text-sm md:text-base"></i>
-                    <div class="hidden sm:inline text-xs sm:text-sm md:text-base">Humidity 2</div>
-                </div>
-                <div class="text-xl sm:text-2xl md:text-3xl lg:text-4xl">
-                    <span id="BMEHumidityValue">0</span>
-                    <span class="units">%</span>
-                </div>
-            </div>
-            <!--BME Pressure 2-->
-            <div class="pressure max-w-xs max-w-64 overflow-hidden polygon place-content-center">
-                <div>
-                    <i class="fa-solid fa-arrows-to-circle text-xs sm:text-sm md:text-base"></i>
-                    <div class="hidden sm:inline text-xs sm:text-sm md:text-base">Pressure 2</div>
-                </div>
-                <div class="text-xl sm:text-2xl md:text-3xl lg:text-4xl">
-                    <span id="BMEPressureValue">0</span>
-                    <span class="units">mb</span>
-                </div>
-            </div>
-            <!--BME Temperature 3-->
-            <div class="temperature max-w-xs max-w-64 overflow-hidden polygon place-content-center">
-                <div>
-                    <i class="fa-solid fa-temperature-empty text-xs sm:text-sm md:text-base"></i>
-                    <div class="hidden sm:inline text-xs sm:text-sm md:text-base">Temperature 3</div>
-                </div>
-                <div class="text-xl sm:text-2xl md:text-3xl lg:text-4xl">
-                    <span id="BMETemperatureValue">0</span>
-                    <span class="units">&deg;C</span>
-                </div>
-            </div>
-
-            <!--BME Humidity 3-->
-            <div class="humidity max-w-xs max-w-64 overflow-hidden polygon place-content-center">
-                <div>
-                    <i class="fa-solid fa-water text-xs sm:text-sm md:text-base"></i>
-                    <div class="hidden sm:inline text-xs sm:text-sm md:text-base">Humidity 3</div>
-                </div>
-                <div class="text-xl sm:text-2xl md:text-3xl lg:text-4xl">
-                    <span id="BMEHumidityValue">0</span>
-                    <span class="units">%</span>
-                </div>
-            </div>
-            <!--BME Pressure 3-->
-            <div class="max-w-xs max-w-64 overflow-hidden polygon place-content-center">
-                <div>
-                    <i class="fa-solid fa-arrows-to-circle text-xs sm:text-sm md:text-base"></i>
-                    <div class="hidden sm:inline text-xs sm:text-sm md:text-base">Pressure 3</div>
-                </div>
-                <div class="text-xl sm:text-2xl md:text-3xl lg:text-4xl">
-                    <span id="BMEPressureValue">0</span>
-                    <span class="units">mb</span>
-                </div>
-            </div>
-            <!--AS5600 Wind Direction-->
-            <div class="max-w-xs max-w-64 overflow-hidden polygon place-content-center">
-                <div>
-                    <i class="fa-solid fa-arrow-turn-up text-xs sm:text-sm md:text-base"></i>
-                    <div class="hidden sm:inline text-xs sm:text-sm md:text-base">Wind Direction</div>
-                </div>
-                <div class="text-xl sm:text-2xl md:text-3xl lg:text-4xl">
-                    <span id="WindDirectionValue">0</span>
-                    <span class="units">&deg;</span>
-                </div>
-            </div>
-            <!--BH1750 Light-->
-            <div class="max-w-xs max-w-64 overflow-hidden polygon place-content-center">
-                <div>
-                    <i class="fa-solid fa-lightbulb text-xs sm:text-sm md:text-base"></i>
-                    <div class="hidden sm:inline text-xs sm:text-sm md:text-base">Light Intensity</div>
-                </div>
-                <div class="text-xl sm:text-2xl md:text-3xl lg:text-4xl">
-                    <span id="LightValue">0</span>
-                    <span class="units">lux</span>
-                </div>
-            </div>
-            <!--GUVA S12SD-->
-            <div class="max-w-xs max-w-64 overflow-hidden polygon place-content-center">
-                <div>
-                    <i class="fa-solid fa-sun text-xs sm:text-sm md:text-base"></i>
-                    <div class="hidden sm:inline text-xs sm:text-sm md:text-base">UV Index</div>
-                </div>
-                <div class="text-xl sm:text-2xl md:text-3xl lg:text-4xl">
-                    <span id="UVValue">0</span>
-                </div>
-            </div>
-            <!--Precipitation-->
-            <div class="max-w-xs max-w-64 overflow-hidden polygon place-content-center">
-                <div>
-                    <i class="fa-solid fa-cloud-showers-heavy text-xs sm:text-sm md:text-base"></i>
-                    <div class="hidden sm:inline text-xs sm:text-sm md:text-base">Precipitation</div>
-                </div>
-                <div class="text-xl sm:text-2xl md:text-3xl lg:text-4xl">
-                    <span id="PrecipitationValue">0</span>
-                    <span class="units">mm</span>
-                </div>
-            </div>
-
-            <!--Gust-->
-            <div class="max-w-xs max-w-64 overflow-hidden polygon place-content-center">
-                <div>
-                    <i class="fa-solid fa-wind text-xs sm:text-sm md:text-base"></i>
-                    <div class="hidden sm:inline text-xs sm:text-sm md:text-base">Gust</div>
-                </div>
-                <div class="text-xl sm:text-2xl md:text-3xl lg:text-4xl">
-                    <span id="WindSpeedValue">0</span>
-                    <span class="units">kph</span>
                 </div>
             </div>
 

@@ -1,6 +1,9 @@
 #include <Arduino.h>
 #include <Wire.h>
 
+// Serial Monitors
+#define SerialMon Serial
+
 #include <WiFi.h>
 // const char *ssid = "Kloudtech Weather Data";
 // const char *password = "kloudtech";
@@ -9,74 +12,58 @@ const char *password = "J@yGsumm!t";
 
 #include <WebServer.h>
 #include <PageIndex.h>
-// #include <PageIndexCss.h>
 WebServer server(80); // Web server on port 80
 
-// Sleep Factors
-#define uS_TO_S_FACTOR 1000000ULL /* Conversion factor for micro seconds to seconds */
-#define TIME_TO_SLEEP 60          /* Time ESP32 will go to sleep (in seconds) */
+// String Parameters
+String t1Str = "";
+String h1Str = "";
+String p1Str = "";
+String t2Str = "";
+String h2Str = "";
+String p2Str = "";
+String t3Str = "";
+String h3Str = "";
+String p3Str = "";
+String lightStr = "";
+String uvIntensityStr = "";
+String windDirStr = "";
+String windSpeedStr = "";
+String rainStr = "";
+String gustStr = "";
+String batteryStr = "";
+String communication = "";
 
 // BME
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
-#define BME_SDA 21
-#define BME_SCL 22
 Adafruit_BME280 bme;
-float t1 = 0;
-float h1 = 0;
-float p1 = 0;
+// Adafruit_BME280 bme2;
+// Adafruit_BME280 bme3;
+float t1, h1, p1, t2, h2, p2, t3, h3, p3;
 
-// BMP
-#include <Adafruit_BMP085.h>
-Adafruit_BMP085 bmp;
-float t2;
-float p2;
+// AS5600 Variables
+int magnetStatus, lowbyte, rawAngle, correctedAngle;
+word highbyte;
+float degAngle, startAngle;
+RTC_DATA_ATTR float rtcStartAngle;
+RTC_DATA_ATTR int rtcCorrectAngle;
 
-// DHT22 Library
-#include <DHT.h>
-#define DHTPIN 04
-#define DHTTYPE DHT22
-DHT dht(DHTPIN, DHTTYPE);
-float h2;
+// UV Variables
+#define uvPin 32
+float sensorVoltage, sensorValue;
+int uvIntensity;
 
-String windSpeedStr = "";
-
-// AS5600 Library
-int magnetStatus = 0; // value of the status register (MD, ML, MH)
-
-int lowbyte;    // raw angle 7:0
-word highbyte;  // raw angle 7:0 and 11:8
-int rawAngle;   // final raw angle
-float degAngle; // raw angle in degrees (360/4096 * [value between 0-4095])
-
-int quadrantNumber, previousquadrantNumber; // quadrant IDs
-float numberofTurns = 0;                    // number of turns
-float correctedAngle = 0;                   // tared angle - based on the startup value
-float startAngle = 0;                       // starting angle
-float totalAngle = 0;                       // total absolute angular displacement
-float previoustotalAngle = 0;               // for the display printing
-
-// BH1750 Library
+// BH1750 Library and Variables
 #include <BH1750.h>
 BH1750 lightMeter;
-float lux = 0;
-float irradiance = 0;
+float lux, irradiance;
 
-// UV Library
-#define UVPIN 32
-float sensorVoltage;
-float sensorValue;
-int UV_index;
-
-// Slave Library
+// Slave Address
 #define SLAVE 0x03
-#define countof(a) (sizeof(a) / sizeof(a[0]))
 
-// Precipitation
+// Rain Gauge
 float tipValue = 0.1099, rain;
-uint16_t receivedRainCount;
-int currentRainCount;
-RTC_DATA_ATTR int prevRainCount;
+uint16_t receivedRainCount = 0;
 
 // Wind Speed and Gust var
 float windspeed;
@@ -85,138 +72,181 @@ uint16_t receivedWindCount = 0;
 float gust;
 uint16_t receivedGustCount = 0;
 
-// SD Card
-#include "FS.h"
-#include "SD.h"
-#include "SPI.h"
-#define SCK 14
-#define MISO 2
-#define MOSI 15
-#define CS 13
-SPIClass spi = SPIClass(VSPI);
-char data[100];
-
-// Time
-#include "RTClib.h"
-RTC_DS3231 rtc;
-
-// void readFile(fs::FS &fs, String path){
-//   Serial.printf("Reading file: %s\n", path);
-
-//   File file = fs.open(path);
-//   if(!file){
-//     Serial.println("Failed to open file for reading");
-//     return;
-//   }
-
-//   Serial.print("Read from file: ");
-//   while(file.available()){
-//     Serial.write(file.read());
-//   }
-//   file.close();
-//   Serial.println("File Closed");
-// }
-
-void appendFile(fs::FS &fs, String path, String message)
+void handleRoot()
 {
-  // Serial.printf("Appending to file: %s\n", path);
-  File file = fs.open(path, FILE_APPEND);
-  // if (!file) {
-  //   Serial.println("Failed to open file for appending");
-  //   return;
-  // }
-  // if (file.println(message)) {
-  //   Serial.println("Message appended");
-  // }
-  // else {
-  //   Serial.println("Append failed");
-  // }
-  file.close();
-  // Serial.println("File Closed");
+  String s = MAIN_page;             // Read HTML contents
+  server.send(200, "text/html", s); // Send web page
 }
-
-void createHeader(fs::FS &fs, String path, String message)
-{
-  // Serial.printf("Checking if %s exists...", path);
-
-  File file = fs.open(path);
-  if (!file)
-  {
-    // Serial.print("\nFile does not exist creating header files now...");
-    File file = fs.open(path, FILE_APPEND);
-    // if (file.println(message))
-    // {
-    //   Serial.println(" >OK");
-    // }
-    // else
-    // {
-    //   Serial.println(" >Failed");
-    // }
-    return;
-  }
-  // Serial.println(" >OK");
-  file.close();
-  // Serial.println("File Closed");
-}
-
-String getFileName()
-{
-  DateTime now = rtc.now();
-  char fileNameString[20]; // adjust the size as needed
-  sprintf(fileNameString, "/%04d%02d%02d.csv", now.year(), now.month(), now.day());
-  return String(fileNameString);
-}
-
-String getTime()
-{
-  DateTime now = rtc.now();
-  String timeString = String(now.year(), DEC) + "-" +
-                      String(now.month(), DEC) + "-" +
-                      String(now.day(), DEC) + " " +
-                      String(now.hour(), DEC) + ":" +
-                      String(now.minute(), DEC) + ":" +
-                      String(now.second(), DEC);
-  return timeString;
-}
-
-void handleRootHtml()
-{
-  String html = MAIN_page;             // Read HTML contents
-  server.send(200, "text/html", html); // Send web page
-}
-
-// void handleRootCss()
-// {
-//   String css = MAIN_page_css;             // Read HTML contents
-//   server.send(200, "text/css", css); // Send web page
-// }
 
 // Sensor readings
-void handleBMETemperature()
+void select_bus(uint8_t bus) {
+  Wire.beginTransmission(0x70);
+  Wire.write(1 << bus);
+  Wire.endTransmission();
+}
+
+void getBME(Adafruit_BME280 bme, int bus, float *temp, float *hum, float *pres) {
+  select_bus(bus);
+  *temp = bme.readTemperature();
+  *hum = bme.readHumidity();
+  *pres = bme.readPressure() / 100.0F;
+}
+
+void handleBME1temp()
 {
   t1 = bme.readTemperature();
-  String Temperature1_Value = String(t1);
-  server.send(200, "text/plain", Temperature1_Value); // Send Temperature value only to client ajax request
+  t1Str = String(t1);
+  server.send(200, "text/plain", t1Str); 
 }
 
-void handleBMEHumidity()
+void handleBME1humid()
 {
-  h1 = bme.readHumidity();
-  String Humidity1_Value = String(h1);
-  server.send(200, "text/plain", Humidity1_Value); // Send Temperature value only to client ajax request
+    h1 = bme.readHumidity();
+  h1Str = String(h1);
+  server.send(200, "text/plain", h1Str);
 }
 
-void handleBMEPressure()
+void handleBME1pres()
 {
   p1 = bme.readPressure() / 100;
-  String Pressure1_Value = String(p1);
-  server.send(200, "text/plain", Pressure1_Value); // Send Temperature value only to client ajax request
+  p1Str = String(p1);
+  server.send(200, "text/plain", p1Str);
 }
+
+// void handleBME2temp()
+// {
+//   getBME(bme2, 3, &t2, &h2, &p2);
+//   t2Str = String(t2);
+//   server.send(200, "text/plain", t2Str);
+// }
+
+// void handleBME2humid()
+// {
+//   getBME(bme2, 3, &t2, &h2, &p2);
+//   h2Str = String(h2);
+//   server.send(200, "text/plain", h2Str);
+// }
+
+// void handleBME2pres()
+// {
+//   getBME(bme2, 3, &t2, &h2, &p2);
+//   p2Str = String(p2);
+//   server.send(200, "text/plain", p2Str);
+// }
+
+// void handleBME3temp()
+// {
+//   getBME(bme3, 4, &t3, &h3, &p3);
+//   t3Str = String(t3);
+//   server.send(200, "text/plain", t3Str);
+// }
+
+// void handleBME3humid()
+// {
+//   getBME(bme3, 4, &t3, &h3, &p3);
+//   h3Str = String(h3);
+//   server.send(200, "text/plain", h3Str);
+// }
+
+// void handleBME3pres()
+// {
+//   getBME(bme3, 4, &t3, &h3, &p3);
+//   p3Str = String(p3);
+//   server.send(200, "text/plain", p3Str);
+// }
+
+// void ReadRawAngle() {
+//   Wire.beginTransmission(0x36);
+//   Wire.write(0x0D);
+//   Wire.endTransmission();
+//   Wire.requestFrom(0x36, 1);
+//   lowbyte = Wire.read();
+
+//   Wire.beginTransmission(0x36);
+//   Wire.write(0x0C);
+//   Wire.endTransmission();
+//   Wire.requestFrom(0x36, 1);
+//   highbyte = Wire.read();
+
+//   highbyte = highbyte << 8;
+//   rawAngle = highbyte | lowbyte;
+//   degAngle = rawAngle * 0.087890625;
+// }
+
+// void correctAngle() {
+//   correctedAngle = 360 - degAngle + startAngle;
+//   if (correctedAngle > 360) { correctedAngle -= 360; }
+//   rtcCorrectAngle = correctedAngle;
+//   if (correctedAngle == 360) { correctedAngle = 0; }
+// }
+
+// void handleWindDirection()
+// {
+//   ReadRawAngle();
+//   correctAngle();
+//   windDirStr = String(correctedAngle);
+//   server.send(200, "text/plain", windDirStr);
+// }
+
+// void handleLight()
+// {
+//   lux = lightMeter.readLightLevel();
+//   lightStr = String(lux);
+//   server.send(200, "text/plain", lightStr);
+// }
+
+// void handleUV()
+// {
+//   sensorValue = analogRead(uvPin);
+//   sensorVoltage = sensorValue * (3.3 / 4095);
+//   uvIntensity = sensorVoltage * 1000;
+//   uvIntensityStr = String(uvIntensity);
+//   server.send(200, "text/plain", uvIntensityStr);
+// }
+
+// void getSlave()
+// {
+//   Wire.begin();
+//   Wire.requestFrom(SLAVE, 6);
+
+//   // Rain
+//    if (Wire.available() >= 4) {
+//     byte msb = Wire.read();
+//     byte lsb = Wire.read();
+//     receivedRainCount = (msb << 8) | lsb;
+//   }
+//   rain = receivedRainCount * tipValue;
+//   rainStr = String(rain);
+
+//   // Wind speed
+//   if (Wire.available() >= 2) {
+//     byte msb = Wire.read();
+//     byte lsb = Wire.read();
+//     receivedWindCount = (msb << 8) | lsb;
+//   }
+//   windspeed = (2 * PI * radius * receivedWindCount * 3.6) / (period * 1000);
+//   windSpeedStr = String(windspeed);
+
+//   // Gust
+//   if (Wire.available() >= 2) {
+//     byte msb = Wire.read();
+//     byte lsb = Wire.read();
+//     receivedGustCount = (msb << 8) | lsb;
+//   }
+//   gust = (2 * PI * radius * receivedGustCount * 3.6) / (3 * 1000);
+//   gustStr = String(gust);
+// }
+
+// void handlePrecipitation()
+// {
+//   getSlave();
+//   server.send(200, "text/plain", rainStr);
+// }
 
 void handleWindSpeed()
 {
-  // Wind speed
-  if (Wire.available() >= 2) {
+  Wire.requestFrom(SLAVE, 2);
+  if (Wire.available()) {
     byte msb = Wire.read();
     byte lsb = Wire.read();
     receivedWindCount = (msb << 8) | lsb;
@@ -226,20 +256,28 @@ void handleWindSpeed()
   server.send(200, "text/plain", windSpeedStr);
 }
 
+// void handleGust()
+// {
+//   getSlave();
+//   server.send(200, "text/plain", gustStr);
+// }
+
 void setup()
 {
   // Initialize Serial Monitor
-  Serial.begin(115200);
+  Wire.begin(21, 22);
+  SerialMon.begin(115200);
   delay(500);
-  Serial.println("=====Opening Serial Monitor====");
+  SerialMon.println("=====Opening Serial Monitor====");
 
   // Set-up Access Point
-  // Serial.println("Setting AP...");
+  // SerialMon.println("Setting AP...");
   // WiFi.softAP(ssid, password);
   // IPAddress IP = WiFi.softAPIP();
-  // Serial.print("AP IP address: ");
-  // Serial.println(IP);
+  // SerialMon.print("AP IP address: ");
+  // SerialMon.println(IP);
 
+  
   Serial.print("Connecting to ");
   Serial.println(ssid);
   WiFi.begin(ssid, password);
@@ -247,110 +285,85 @@ void setup()
     delay(500);
     Serial.print(".");
   }
-  // Print local IP address and start web server
-  Serial.println("");
-  Serial.println("WiFi connected.");
-  Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
 
-  // Initialize Wire I2C
-  Wire.begin(21, 22);
 
-  // Initialize RTC
-  if (!rtc.begin())
+  // Initialize BME 1
+  if (!bme.begin(0x76))
   {
-    Serial.println("Skipping RTC Initialization");
+    SerialMon.println("BME1: Failed");
   }
   else
   {
-    Serial.println("RTC Initiation Complete");
+    SerialMon.println("BME1: OK");
   }
+  delay(10);
 
-  // Initialize BME
-  // if (!bme.begin(0x76))
+  // // Initialize BME 2
+  // if (!bme2.begin(0x76))
   // {
-  //   Serial.println("Could not find a valid BME280 sensor, check wiring!");
-  //   while (1)
-  //     ;
+  //   SerialMon.println("BME2: Failed");
   // }
   // else
   // {
-  //   Serial.println("BME Initiation Complete");
+  //   SerialMon.println("BME2: OK");
   // }
   // delay(10);
 
-  // Initialize BMP
-  // if (!bmp.begin())
+  // // Initialize BME 3
+  // if (!bme3.begin(0x76))
   // {
-  //   Serial.println("Could not find a valid BMP180 sensor, check wiring!");
-  //   while (1)
-  //     ;
+  //   SerialMon.println("BME3: Failed");
   // }
   // else
   // {
-  //   Serial.println("BMP Initiation Complete");
+  //   SerialMon.println("BME3: OK");
   // }
   // delay(10);
 
-  // // Initialize DHT
-  // dht.begin();
-  // if (isnan(h2))
-  // {
-  //   Serial.println("Could not find a valid DHT22 sensor, check wiring!");
-  // }
-  // else
-  // {
-  //   Serial.println("DHT Initiation Complete");
-  // }
-  // delay(10);
-
-  // // Initialize Light sensor
+  // Initialize Light sensor
   // if (!lightMeter.begin())
   // {
-  //   Serial.println("Could not find a valid BH1750 sensor, check wiring!");
+  //   Serial.println("Light: Failed");
   // }
   // else
   // {
-  //   Serial.println("BH1750 Initiation Complete");
+  //   Serial.println("Light: OK");
   // }
 
-  // // Initialize UV
-  // if (isnan(sensorValue))
-  // {
-  //   Serial.println("Could not find a valid UV sensor, check wiring!");
-  // }
-  // else
-  // {
-  //   Serial.println("UV Initiation Complete");
-  // }
+  // Initialize Direction
+  // startAngle - rtcStartAngle;
+  // ReadRawAngle();
+  // if (rtcStartAngle == 0) { rtcStartAngle = degAngle; }
+  // startAngle = rtcStartAngle;
+  // correctedAngle = rtcCorrectAngle;
+  // Wire.beginTransmission(0x36);
+  // if (!Wire.endTransmission() == 0) { SerialMon.println("Direction: Failed"); }
+  // else { SerialMon.println("Direction: OK"); }
 
-  // // Initialize Slave
-  // if (!Wire.begin())
-  // {
-  //   Serial.println("Could not find a valid Slave Device, check wiring!");
-  // }
-  // else
-  // {
-  //   Serial.println("Slave Initiation Complete");
-  // }
-
-  // // Initialize SD Card
-  // spi.begin(SCK, MISO, MOSI, CS);
+  // Initialize Slave
+  // Wire.beginTransmission(SLAVE);
+  // if (!Wire.endTransmission() == 0) { SerialMon.println("Slave: Failed"); }
+  // else { SerialMon.println("Slave: OK"); }
+  // Wire.requestFrom(SLAVE, 6);
 
   // Setup Web server routes
-  server.on("/", handleRootHtml);
-  // server.on("/output.css", handleRootCss);
-  server.on("/readBMETemperature", handleBMETemperature);
-  server.on("/readBMEHumidity", handleBMEHumidity);
-  server.on("/readBMEPressure", handleBMEPressure);
-  // server.on("/readBMPTemperature", handleBMPTemperature);
-  // server.on("/readBMPPressure", handleBMPPressure);
-  // server.on("/readDHTHumidity", handleDHTHumidity);
+  server.on("/", handleRoot);
+  server.on("/readBME1temp", handleBME1temp);
+  // server.on("/readBME2temp", handleBME2temp);
+  // server.on("/readBME3temp", handleBME3temp);
+  server.on("/readBME1humid", handleBME1humid);
+  // server.on("/readBME2humid", handleBME2humid);
+  // server.on("/readBME3humid", handleBME3humid);
+  server.on("/readBME1pres", handleBME1pres);
+  // server.on("/readBME2pres", handleBME2pres);
+  // server.on("/readBME3pres", handleBME3pres);
   // server.on("/readWindDirection", handleWindDirection);
   // server.on("/readLight", handleLight);
   // server.on("/readUV", handleUV);
   // server.on("/readPrecipitation", handlePrecipitation);
   server.on("/readWindSpeed", handleWindSpeed);
+  // server.on("/readGust", handleGust);
 
   // Start server
   server.begin();

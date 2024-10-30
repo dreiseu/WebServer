@@ -1,0 +1,22 @@
+@media (min-width: 640px) { 
+    .logo {
+        width: 1.25rem; /* 20px */
+        height: 1.25rem; /* 20px */
+
+    }
+
+}
+@media (min-width: 768px) {
+    .logo{ 
+    width: 2rem; /* 32px */
+    height: 2rem; /* 32px */
+    }
+}
+@media (min-width: 1024px) { 
+
+}
+
+.logo {
+    width: 1.25rem; /* 20px */
+    height: 1.25rem; /* 20px */
+}

@@ -45,7 +45,7 @@ main {
     transform: translateY(50%);
 }
 
-/* 
+
     .card {
         background-color: #fff;
         padding: 1em;
@@ -60,7 +60,7 @@ main {
     .card h2 {
         margin-top: 0;
         font-size: 1.5rem;
-    } */
+    }
 
 .grid {
     color: #FAFDF6;
